@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris Menu</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --theme: 181, 0, 0;
+    --bg: 8, 6, 10;
+    --surface: 14, 10, 16;
+    --text-primary: #fff;
+    --text-secondary: #c0b8b8;
+    --text-muted: #6a5858;
+    --radius: 14px;
+    --item-radius: 10px;
+    --glow-soft: 0 0 40px -8px rgba(var(--theme), 0.3);
+    --glow-strong: 0 0 60px -5px rgba(var(--theme), 0.45);
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: transparent;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* In-game (DUI) mode keeps the page transparent so only the panel renders.
+   The `.standalone` class is added by script.js when opened directly in a
+   browser, restoring the ambient backdrop for previewing. */
+body.standalone {
+    background: #050308;
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(var(--theme), 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 30%, rgba(120, 10, 10, 0.05) 0%, transparent 50%);
+}
+
+/* Hidden state — Lua toggles this via the bridge */
+.menu-container.hidden {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+    pointer-events: none;
+}
+
+/* ───────── Container ───────── */
+.menu-container {
+    position: absolute;
+    top: 15vh;
+    left: 8vw;
+    width: 440px;
+    border-radius: var(--radius);
+    background: rgba(var(--bg), 0.88);
+    backdrop-filter: blur(30px) saturate(1.4);
+    box-shadow:
+        0 30px 70px rgba(0,0,0,0.8),
+        0 0 80px -10px rgba(var(--theme), 0.15),
+        0 0 120px -20px rgba(var(--theme), 0.08);
+    overflow: visible;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    animation: menuAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top center;
+    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes menuAppear {
+    0% { opacity: 0; transform: scale(0.96) translateY(12px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ───────── Banner ───────── */
+.header-banner {
+    width: 100%;
+    aspect-ratio: 1024 / 361;
+    background:
+        radial-gradient(130% 150% at 0% 0%, rgba(var(--theme), 0.55) 0%, transparent 55%),
+        radial-gradient(130% 150% at 100% 0%, rgba(var(--theme), 0.22) 0%, transparent 52%),
+        linear-gradient(135deg, rgba(var(--theme), 0.30) 0%, rgba(var(--bg), 1) 72%);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-radius: var(--radius) var(--radius) 0 0;
+    overflow: hidden;
+}
+
+.header-banner::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(var(--bg), 1) 0%, rgba(var(--bg), 0.6) 40%, transparent 100%);
+    pointer-events: none;
+}
+
+/* ───────── Tabs ───────── */
+.tabs {
+    display: flex;
+    padding: 0;
+    background: rgba(var(--surface), 0.7);
+    border-bottom: 1px solid rgba(var(--theme), 0.08);
+    position: relative;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 13px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    transition: color 0.35s ease, background 0.35s ease;
+}
+
+.tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: rgb(var(--theme));
+    border-radius: 2px 2px 0 0;
+    transform: scaleX(0);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 14px rgba(var(--theme), 0.7), 0 0 30px rgba(var(--theme), 0.3);
+}
+
+.tab:hover {
+    color: #bbb;
+    background: rgba(var(--theme), 0.03);
+}
+
+.tab.active {
+    color: rgb(var(--theme));
+    background: rgba(var(--theme), 0.08);
+    text-shadow: 0 0 16px rgba(var(--theme), 0.6);
+}
+
+.tab.active::after {
+    transform: scaleX(1);
+}
+
+/* ───────── Content ───────── */
+.content {
+    padding: 10px 10px 4px 10px;
+    position: relative;
+}
+
+/* ─── Custom Scrollbar ─── */
+.scroll-track {
+    position: absolute;
+    left: -10px;
+    width: 8px;
+    z-index: 10;
+    /* top and height set by JS */
+}
+
+.scroll-arrow-top,
+.scroll-arrow-bottom {
+    position: absolute;
+    left: 0;
+    width: 8px;
+    text-align: center;
+    font-size: 9px;
+    color: rgba(var(--theme), 0.8);
+    pointer-events: none;
+    transition: top 0.05s linear;
+    text-shadow: 0 0 6px rgba(var(--theme), 0.5);
+}
+
+.scroll-thumb {
+    position: absolute;
+    left: 2px;
+    width: 4px;
+    height: 30px;
+    background: rgb(var(--theme));
+    border-radius: 10px;
+    box-shadow: 0 0 16px rgba(var(--theme), 0.9), 0 0 8px rgba(var(--theme), 0.6);
+    transition: top 0.05s linear, height 0.1s ease;
+}
+
+.menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    height: 310px;
+    overflow-y: auto;
+    padding-right: 4px;
+    transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.15s ease;
+}
+
+/* Scrollbar */
+.menu-list::-webkit-scrollbar { display: none; }
+.menu-list { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ───────── Menu Items ───────── */
+.menu-item {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 42px;
+    flex-shrink: 0;
+    padding: 0 16px;
+    border-radius: var(--item-radius);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    transition:
+        background 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shimmer sweep on active */
+.menu-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(var(--theme), 0.06) 50%, transparent 100%);
+    transition: left 0.5s ease;
+    pointer-events: none;
+}
+
+/* ─── Item Icon ─── */
+.item-icon {
+    width: 28px;
+    margin-right: 14px;
+    font-size: 18px;
+    text-align: center;
+    color: var(--text-muted);
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.menu-item .item-name {
+    flex: 1;
+    font-size: 15.2px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    z-index: 2;
+    letter-spacing: 0.2px;
+}
+
+.menu-item .item-arrow {
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+    opacity: 0.5;
+    transform: translateX(0);
+}
+
+/* ─── Hover ─── */
+.menu-item:hover {
+    background: rgba(var(--theme), 0.04);
+}
+.menu-item:hover .item-name { color: #ccc; }
+.menu-item:hover .item-arrow { opacity: 0.8; }
+.menu-item:hover .item-icon { color: #999; }
+
+/* ─── Active / Selected ─── */
+.menu-item.active {
+    background: linear-gradient(100deg, rgba(var(--theme), 0.22) 0%, rgba(var(--theme), 0.06) 100%);
+    box-shadow:
+        0 4px 25px rgba(0,0,0,0.5),
+        0 0 40px -5px rgba(var(--theme), 0.3),
+        inset 0 0 30px rgba(var(--theme), 0.1);
+}
+
+.menu-item.active::after {
+    left: 100%;
+}
+
+/* Glowing left accent bar */
+.menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%;
+    width: 3px;
+    background: rgb(var(--theme));
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 18px rgba(var(--theme), 0.9), 0 0 8px rgba(var(--theme), 0.6);
+    z-index: 3;
+}
+
+.menu-item.active .item-icon {
+    color: rgb(var(--theme));
+    text-shadow: 0 0 12px rgba(var(--theme), 0.7);
+}
+
+.menu-item.active .item-name {
+    color: #fff;
+    font-weight: 500;
+    padding-left: 4px;
+    text-shadow: 0 0 14px rgba(var(--theme), 0.4);
+}
+
+.menu-item.active .item-arrow {
+    color: rgb(var(--theme));
+    opacity: 1;
+    transform: translateX(2px);
+    text-shadow: 0 0 10px rgba(var(--theme), 0.6);
+}
+
+/* ─── Click state ─── */
+.menu-item.pressed {
+    transform: scale(0.975);
+    transition: transform 0.08s ease;
+}
+
+/* ───────── Footer ───────── */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.35);
+    border-top: 1px solid rgba(var(--theme), 0.08);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.footer .discord {
+    transition: color 0.25s;
+    cursor: pointer;
+}
+.footer .discord:hover { color: rgb(var(--theme)); }
+
+.footer .page-count {
+    background: rgba(var(--theme), 0.08);
+    border: 1px solid rgba(var(--theme), 0.15);
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ───────── UI Components ───────── */
+/* Sliders */
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 5px;
+    z-index: 2;
+}
+.slider-track {
+    width: 60px;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+.slider-fill {
+    height: 100%;
+    background: rgb(var(--theme));
+    border-radius: 4px;
+    transition: width 0.1s ease;
+    box-shadow: 0 0 8px rgba(var(--theme), 0.4);
+}
+.slider-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-width: 22px;
+    text-align: right;
+}
+.menu-item.active .slider-value { color: #fff; }
+
+/* Toggles */
+.toggle-switch {
+    width: 34px;
+    height: 18px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 18px;
+    position: relative;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    margin-right: 5px;
+    z-index: 2;
+}
+.toggle-knob {
+    width: 14px;
+    height: 14px;
+    background: #888;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+}
+.toggle-switch.on {
+    background: rgb(var(--theme));
+    box-shadow: 0 0 16px rgba(var(--theme), 0.5), 0 0 6px rgba(var(--theme), 0.3);
+}
+.toggle-switch.on .toggle-knob {
+    background: #fff;
+    transform: translateX(16px);
+}
+
+/* Transitions */
+.menu-list {
+    transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.15s ease;
+}
+.menu-list.fade-out {
+    opacity: 0;
+}
+
+/* ───────── Separator ───────── */
+.menu-separator {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    opacity: 0.7;
+}
+
+.separator-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+.separator-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(var(--theme), 0.1);
+}
+
+/* ───────── Array Selector ───────── */
+.array-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    z-index: 2;
+}
+
+.array-arrow {
+    font-size: 11px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.array-arrow.pressed {
+    transform: scale(0.8);
+    opacity: 1;
+}
+
+.menu-item.active .array-container { color: #fff; }
+.menu-item.active .array-arrow { opacity: 0.8; }
+.menu-item.active .array-arrow:hover { opacity: 1; }
+
+.array-value {
+    min-width: 60px;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* ───────── Color Picker ───────── */
+.color-preview {
+    width: 24px;
+    height: 16px;
+    border-radius: 6px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: 2;
+    margin-right: 0;
+}
+
+/* ───────── Banner Identity Overlay ───────── */
+.banner-identity {
+    position: absolute;
+    left: 16px;
+    bottom: 10px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.banner-identity .bi-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(var(--theme), 0.6);
+    box-shadow: 0 0 14px rgba(var(--theme), 0.5);
+    background: rgba(var(--surface), 1);
+}
+
+.banner-identity .bi-text { display: flex; flex-direction: column; line-height: 1.25; }
+.banner-identity .bi-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.8), 0 0 16px rgba(var(--theme), 0.5);
+    letter-spacing: 0.3px;
+}
+.banner-identity .bi-sub {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    letter-spacing: 0.4px;
+}
+
+.banner-brand {
+    position: absolute;
+    right: 14px;
+    bottom: 10px;
+    z-index: 3;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgb(var(--theme));
+    text-shadow: 0 0 18px rgba(var(--theme), 0.8), 0 1px 4px rgba(0,0,0,0.9);
+    pointer-events: none;
+}
+
+/* ───────── Info / Read-only Rows ───────── */
+.menu-item.is-info { cursor: default; }
+.menu-item.is-info:hover { background: transparent; }
+
+.info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    max-width: 210px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    z-index: 2;
+}
+.menu-item.active .info-value { color: #fff; }
+
+/* Small status pill used by some rows (e.g. enabled/disabled badges) */
+.status-pill {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    z-index: 2;
+}
+.status-pill.on  { color: rgb(var(--theme)); background: rgba(var(--theme), 0.12); border: 1px solid rgba(var(--theme), 0.3); }
+.status-pill.off { color: var(--text-muted); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+
+/* ───────── Keybind Badge ───────── */
+.keybind-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(var(--theme), 0.18);
+    border-radius: 6px;
+    padding: 3px 8px;
+    min-width: 20px;
+    text-align: center;
+    z-index: 2;
+}
+.menu-item.active .keybind-badge { color: #fff; border-color: rgba(var(--theme), 0.5); }
+.keybind-badge.listening {
+    color: rgb(var(--theme));
+    border-color: rgb(var(--theme));
+    box-shadow: 0 0 12px rgba(var(--theme), 0.5);
+    animation: kbPulse 0.9s ease-in-out infinite;
+}
+@keyframes kbPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* ───────── Notification Toasts ───────── */
+.toast-stack {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 220px;
+    max-width: 340px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(var(--bg), 0.92);
+    backdrop-filter: blur(22px) saturate(1.4);
+    border: 1px solid rgba(var(--theme), 0.18);
+    border-left: 3px solid rgb(var(--theme));
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 40px -10px rgba(var(--theme), 0.4);
+    color: var(--text-primary);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast .toast-icon {
+    font-size: 16px;
+    color: rgb(var(--theme));
+    text-shadow: 0 0 12px rgba(var(--theme), 0.6);
+    flex-shrink: 0;
+}
+.toast .toast-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.toast .toast-title { font-size: 12.5px; font-weight: 700; letter-spacing: 0.3px; }
+.toast .toast-text {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.toast.type-success { border-left-color: #2ecc71; }
+.toast.type-success .toast-icon { color: #2ecc71; text-shadow: 0 0 12px rgba(46,204,113,0.6); }
+.toast.type-error { border-left-color: #e74c3c; }
+.toast.type-error .toast-icon { color: #e74c3c; text-shadow: 0 0 12px rgba(231,76,60,0.6); }
+.toast.type-warning { border-left-color: #f1c40f; }
+.toast.type-warning .toast-icon { color: #f1c40f; text-shadow: 0 0 12px rgba(241,196,15,0.6); }
+
+/* ───────── Subtitle under item name (descriptions) ───────── */
+.item-name-wrap { display: flex; flex-direction: column; flex: 1; min-width: 0; z-index: 2; }
+.item-name-wrap .item-name { flex: none; }
+.item-desc {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+.menu-item.active .item-desc { color: var(--text-secondary); }
+
+/* ───────── Loader / Keybind Overlay ───────── */
+.loader-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    transition: opacity 0.4s ease;
+}
+
+.loader-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader-box {
+    width: 260px;
+    background: rgba(var(--bg), 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(var(--theme), 0.2);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 40px -10px rgba(var(--theme), 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: scale(0.95);
+    animation: loaderPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loaderPop {
+    0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(var(--theme), 0.15);
+    border-top-color: rgb(var(--theme));
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 18px;
+    box-shadow: 0 0 15px rgba(var(--theme), 0.4);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loader-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    text-shadow: 0 0 12px rgba(var(--theme), 0.6);
+    letter-spacing: 1px;
+}
+
+.loader-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.bind-prompt {
+    margin-top: 18px;
+    width: 100%;
+}
+
+.btn-bind {
+    width: 100%;
+    background: linear-gradient(100deg, rgba(var(--theme), 0.2) 0%, rgba(var(--theme), 0.05) 100%);
+    border: 1px solid rgba(var(--theme), 0.4);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(var(--theme), 0.2);
+}
+
+.btn-bind:hover {
+    background: rgba(var(--theme), 0.3);
+    box-shadow: 0 0 20px rgba(var(--theme), 0.4);
+}
+
+.bind-listen {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgb(var(--theme));
+    animation: kbPulse 0.9s ease-in-out infinite;
+    padding: 10px 0;
+}
+
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading / Keybind Overlay -->
+    <div class="loader-overlay" id="loader-overlay">
+        <div class="loader-box">
+            <div class="spinner" id="loader-spinner"></div>
+            <div class="loader-title">Solaris</div>
+            <div class="loader-text" id="loader-text">Injecting Core Modules...</div>
+            
+            <div class="bind-prompt" id="bind-prompt" style="display: none;">
+                <button class="btn-bind" id="btn-bind">Select a Keybind</button>
+                <div class="bind-listen" id="bind-listen" style="display: none;">Press Any Key...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="menu-container" id="menu-container">
+        <!-- Header Banner -->
+        <div class="header-banner">
+            <div class="banner-identity">
+                <img class="bi-avatar" id="bi-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+                <div class="bi-text">
+                    <span class="bi-name" id="bi-name">Solaris</span>
+                    <span class="bi-sub" id="bi-sub">not connected</span>
+                </div>
+            </div>
+            <div class="banner-brand">Solaris</div>
+        </div>
+
+        <!-- Tabs — rendered dynamically by JS -->
+        <div class="tabs"></div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Floating Scrollbar -->
+            <div class="scroll-track" id="scroll-track">
+                <i class="fa-solid fa-chevron-up scroll-arrow-top"></i>
+                <div class="scroll-thumb" id="scroll-thumb"></div>
+                <i class="fa-solid fa-chevron-down scroll-arrow-bottom"></i>
+            </div>
+
+            <div class="menu-list" id="menu-list">
+                <!-- Javascript will inject list items here -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="discord"><i class="fa-solid fa-fire" style="margin-right:6px;color:rgb(var(--theme))"></i>discord.gg/solarismenu</span>
+            <span class="page-count" id="page-count">1/7</span>
+        </div>
+    </div>
+
+    <!-- Notification toasts injected here by the bridge -->
+    <div class="toast-stack" id="toast-stack"></div>
+
+    <script>
+/* ============================================================================
+ *  SOLARIS — Menu View Layer
+ * ----------------------------------------------------------------------------
+ *  This file is a *pure view*. In-game it is loaded as a DUI by the Lua core
+ *  (solaris.lua), which owns all state, input and feature logic. Lua pushes
+ *  view commands here through `window.postMessage` (see the Bridge section).
+ *
+ *  When the page is opened directly in a browser (no Lua talking to it), it
+ *  falls back to STANDALONE mode: a small sample menu with local keyboard
+ *  navigation so the design can be previewed.
+ *
+ *  Message protocol (event.data.type):
+ *    solaris:init              { brand, version, discord, theme:[r,g,b] }
+ *    solaris:setVisible        { visible }
+ *    solaris:setHeader         { name, sub, avatar }
+ *    solaris:setTabs           { tabs:[{id,label}], activeTab }
+ *    solaris:setPage           { items:[...], activeIndex, animateDir, path }
+ *    solaris:setActive         { index }
+ *    solaris:updateItem        { index, patch:{...} }
+ *    solaris:setTheme          { r, g, b } | { rainbow:true } | { rainbow:false }
+ *    solaris:notify            { title, text, kind, duration }
+ *    solaris:pressFeedback     { index }
+ *    solaris:setKeybindState   { index, listening }
+ * ==========================================================================*/
+
+(function () {
+    "use strict";
+
+    /* ───────────────────────── Theme engine ───────────────────────── */
+    var Theme = (function () {
+        var currentRgb = [181, 0, 0];
+        var rainbowRaf = null;
+
+        function hexToRgb(hex) {
+            hex = String(hex).replace("#", "");
+            return [
+                parseInt(hex.substring(0, 2), 16),
+                parseInt(hex.substring(2, 4), 16),
+                parseInt(hex.substring(4, 6), 16)
+            ];
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function hslToRgb(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            var r, g, b;
+            if (s === 0) { r = g = b = l; }
+            else {
+                var hue2rgb = function (p, q, t) {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        function set(r, g, b) {
+            currentRgb = [r, g, b];
+            document.documentElement.style.setProperty("--theme", r + ", " + g + ", " + b);
+        }
+
+        function startRainbow() {
+            if (rainbowRaf) return;
+            var start = null;
+            var tick = function (ts) {
+                if (!start) start = ts;
+                var hue = ((ts - start) / 1000 * 60) % 360;
+                var rgb = hslToRgb(hue, 85, 65);
+                set(rgb[0], rgb[1], rgb[2]);
+                rainbowRaf = requestAnimationFrame(tick);
+            };
+            rainbowRaf = requestAnimationFrame(tick);
+        }
+
+        function stopRainbow() {
+            if (rainbowRaf) { cancelAnimationFrame(rainbowRaf); rainbowRaf = null; }
+        }
+
+        return {
+            set: set, hexToRgb: hexToRgb, rgbToHex: rgbToHex,
+            startRainbow: startRainbow, stopRainbow: stopRainbow,
+            current: function () { return currentRgb.slice(); }
+        };
+    })();
+
+    /* ───────────────────────── DOM references ───────────────────────── */
+    var dom = {};
+    function cacheDom() {
+        dom.container = document.getElementById("menu-container");
+        dom.list = document.getElementById("menu-list");
+        dom.pageCount = document.getElementById("page-count");
+        dom.tabs = document.querySelector(".tabs");
+        dom.track = document.getElementById("scroll-track");
+        dom.thumb = document.getElementById("scroll-thumb");
+        dom.arrowTop = document.querySelector(".scroll-arrow-top");
+        dom.arrowBottom = document.querySelector(".scroll-arrow-bottom");
+        dom.biName = document.getElementById("bi-name");
+        dom.biSub = document.getElementById("bi-sub");
+        dom.biAvatar = document.getElementById("bi-avatar");
+        dom.toastStack = document.getElementById("toast-stack");
+    }
+
+    /* ───────────────────────── HTML escaping ───────────────────────── */
+    function esc(str) {
+        return String(str == null ? "" : str)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    /* ============================================================================
+     *  VIEW — renders pages, items, highlight, scrollbar, header, toasts
+     * ==========================================================================*/
+    var View = (function () {
+        var MENU_MAX_HEIGHT = 310;
+        var MENU_MIN_HEIGHT = 64;
+
+        var currentItems = [];
+        var activeIndex = 0;
+        var transitioning = false;
+
+        /* ---- Item markup builder (superset of every supported control) ---- */
+        function buildItemHtml(item, i) {
+            if (item.type === "separator") {
+                return '<div class="menu-separator" data-index="' + i + '">' +
+                    '<span class="separator-line"></span>' +
+                    '<span class="separator-text">' + esc(item.label) + '</span>' +
+                    '<span class="separator-line"></span>' +
+                    '</div>';
+            }
+
+            var right = "";
+            switch (item.type) {
+                case "submenu":
+                    right = '<span class="item-arrow"><i class="fa-solid fa-chevron-right"></i></span>';
+                    break;
+                case "toggle":
+                    right = '<div class="toggle-switch ' + (item.value ? "on" : "") + '"><div class="toggle-knob"></div></div>';
+                    break;
+                case "slider": {
+                    var span = (item.max - item.min) || 1;
+                    var pct = ((item.value - item.min) / span) * 100;
+                    right = '<div class="slider-container">' +
+                        '<div class="slider-track"><div class="slider-fill" style="width:' + pct + '%"></div></div>' +
+                        '<span class="slider-value">' + esc(item.value) + esc(item.unit || "") + '</span>' +
+                        '</div>';
+                    break;
+                }
+                case "action":
+                    right = '<span class="item-arrow" style="opacity:0.3"><i class="fa-solid fa-chevron-right"></i></span>';
+                    break;
+                case "array": {
+                    var label = (item.options && item.options[item.value] != null)
+                        ? item.options[item.value] : "";
+                    right = '<div class="array-container">' +
+                        '<span class="array-arrow left-arrow"><i class="fa-solid fa-chevron-left"></i></span>' +
+                        '<span class="array-value">' + esc(label) + '</span>' +
+                        '<span class="array-arrow right-arrow"><i class="fa-solid fa-chevron-right"></i></span>' +
+                        '</div>';
+                    break;
+                }
+                case "value":
+                    right = '<div class="array-container">' +
+                        '<span class="array-arrow left-arrow"><i class="fa-solid fa-chevron-left"></i></span>' +
+                        '<span class="array-value">' + esc(item.valueStr) + '</span>' +
+                        '<span class="array-arrow right-arrow"><i class="fa-solid fa-chevron-right"></i></span>' +
+                        '</div>';
+                    break;
+                case "color":
+                    right = '<div class="color-preview" style="background-color:' + esc(item.value) + '"></div>';
+                    break;
+                case "info":
+                    right = '<span class="info-value">' + esc(item.valueStr) + '</span>';
+                    break;
+                case "keybind":
+                    right = '<span class="keybind-badge' + (item.listening ? " listening" : "") + '">' +
+                        esc(item.listening ? "..." : (item.keyStr || "—")) + '</span>';
+                    break;
+            }
+
+            var iconHtml = item.icon
+                ? '<span class="item-icon"><i class="' + esc(item.icon) + '"></i></span>' : "";
+
+            var nameHtml;
+            if (item.desc) {
+                nameHtml = '<span class="item-name-wrap">' +
+                    '<span class="item-name">' + esc(item.label) + '</span>' +
+                    '<span class="item-desc">' + esc(item.desc) + '</span>' +
+                    '</span>';
+            } else {
+                nameHtml = '<span class="item-name">' + esc(item.label) + '</span>';
+            }
+
+            var cls = "menu-item" + (item.type === "info" ? " is-info" : "");
+            return '<div class="' + cls + '" data-index="' + i + '">' + iconHtml + nameHtml + right + '</div>';
+        }
+
+        function render(items, activeIdx, animateDir, onReady) {
+            currentItems = items || [];
+            var html = "";
+            for (var i = 0; i < currentItems.length; i++) html += buildItemHtml(currentItems[i], i);
+
+            var commit = function () {
+                dom.list.innerHTML = html;
+                dom.list.scrollTop = 0;
+                setActive(activeIdx);
+                adjustHeight();
+                if (onReady) onReady();
+            };
+
+            if (animateDir) {
+                transitioning = true;
+                dom.list.classList.add("fade-out");
+                dom.list.style.transform = animateDir === "forward" ? "translateX(-15px)" : "translateX(15px)";
+                setTimeout(function () {
+                    commit();
+                    dom.list.style.transform = animateDir === "forward" ? "translateX(15px)" : "translateX(-15px)";
+                    dom.list.classList.remove("fade-out");
+                    requestAnimationFrame(function () { dom.list.style.transform = "translateX(0)"; });
+                    setTimeout(function () { transitioning = false; }, 150);
+                }, 150);
+            } else {
+                dom.list.style.transform = "translateX(0)";
+                commit();
+            }
+        }
+
+        function setActive(index) {
+            activeIndex = index;
+            var nodes = dom.list.children;
+            for (var i = 0; i < nodes.length; i++) {
+                if (!nodes[i].classList.contains("menu-item")) continue;
+                if (i === index) {
+                    nodes[i].classList.add("active");
+                    nodes[i].scrollIntoView({ behavior: "smooth", block: "nearest" });
+                } else {
+                    nodes[i].classList.remove("active");
+                }
+            }
+            updatePageCount();
+            updateScrollbar();
+        }
+
+        function updatePageCount() {
+            if (!dom.pageCount) return;
+            var total = 0, num = 0;
+            for (var j = 0; j < currentItems.length; j++) {
+                if (currentItems[j].type !== "separator") {
+                    total++;
+                    if (j === activeIndex) num = total;
+                }
+            }
+            dom.pageCount.textContent = (total ? num : 0) + "/" + total;
+        }
+
+        /* Patch a single item's control in place (no full re-render) */
+        function updateItem(index, patch) {
+            var item = currentItems[index];
+            var node = dom.list.children[index];
+            if (!item || !node) return;
+            for (var k in patch) if (patch.hasOwnProperty(k)) item[k] = patch[k];
+
+            if (item.type === "toggle") {
+                var sw = node.querySelector(".toggle-switch");
+                if (sw) sw.classList.toggle("on", !!item.value);
+            } else if (item.type === "slider") {
+                var span = (item.max - item.min) || 1;
+                var pct = ((item.value - item.min) / span) * 100;
+                var fill = node.querySelector(".slider-fill");
+                var val = node.querySelector(".slider-value");
+                if (fill) fill.style.width = pct + "%";
+                if (val) val.textContent = item.value + (item.unit || "");
+            } else if (item.type === "array") {
+                var av = node.querySelector(".array-value");
+                if (av && item.options) av.textContent = item.options[item.value] != null ? item.options[item.value] : "";
+            } else if (item.type === "value") {
+                var vv = node.querySelector(".array-value");
+                if (vv) vv.textContent = item.valueStr;
+            } else if (item.type === "color") {
+                var sw2 = node.querySelector(".color-preview");
+                if (sw2) sw2.style.backgroundColor = item.value;
+            } else if (item.type === "info") {
+                var iv = node.querySelector(".info-value");
+                if (iv) iv.textContent = item.valueStr;
+            } else if (item.type === "keybind") {
+                var kb = node.querySelector(".keybind-badge");
+                if (kb) {
+                    kb.classList.toggle("listening", !!item.listening);
+                    kb.textContent = item.listening ? "..." : (item.keyStr || "—");
+                }
+            }
+        }
+
+        function pressFeedback(index) {
+            var node = dom.list.children[index];
+            if (!node) return;
+            node.classList.add("pressed");
+            setTimeout(function () { if (node) node.classList.remove("pressed"); }, 120);
+        }
+
+        function flashArrow(index, dir) {
+            var node = dom.list.children[index];
+            if (!node) return;
+            var arrow = node.querySelector(dir === "left" ? ".left-arrow" : ".right-arrow");
+            if (arrow) {
+                arrow.classList.add("pressed");
+                setTimeout(function () { if (arrow) arrow.classList.remove("pressed"); }, 100);
+            }
+        }
+
+        /* ---- Dynamic height + custom scrollbar ---- */
+        function adjustHeight() {
+            dom.list.style.height = "auto";
+            var content = dom.list.scrollHeight;
+            var h = Math.max(MENU_MIN_HEIGHT, Math.min(content, MENU_MAX_HEIGHT));
+            dom.list.style.height = h + "px";
+            updateScrollbar();
+        }
+
+        function updateScrollbar() {
+            if (!dom.track || !dom.thumb) return;
+            requestAnimationFrame(function () {
+                var sh = dom.list.scrollHeight;
+                var ch = dom.list.clientHeight;
+                var st = dom.list.scrollTop;
+                dom.track.style.top = dom.list.offsetTop + "px";
+                dom.track.style.height = ch + "px";
+
+                if (sh <= ch || ch === 0) {
+                    dom.thumb.style.height = ch + "px";
+                    dom.thumb.style.top = "0px";
+                    if (dom.arrowTop) dom.arrowTop.style.display = "none";
+                    if (dom.arrowBottom) dom.arrowBottom.style.display = "none";
+                    return;
+                }
+                if (dom.arrowTop) dom.arrowTop.style.display = "";
+                if (dom.arrowBottom) dom.arrowBottom.style.display = "";
+
+                var th = Math.max(25, (ch / sh) * ch);
+                dom.thumb.style.height = th + "px";
+                var maxTravel = ch - th;
+                var maxScroll = sh - ch;
+                var y = maxScroll > 0 ? (st / maxScroll) * maxTravel : 0;
+                dom.thumb.style.top = y + "px";
+                if (dom.arrowTop) dom.arrowTop.style.top = (y - 16) + "px";
+                if (dom.arrowBottom) dom.arrowBottom.style.top = (y + th + 4) + "px";
+            });
+        }
+
+        /* ---- Tabs ---- */
+        function renderTabs(tabs, activeId, onClick) {
+            var html = "";
+            for (var i = 0; i < tabs.length; i++) {
+                html += '<div class="tab' + (tabs[i].id === activeId ? " active" : "") +
+                    '" data-tab="' + esc(tabs[i].id) + '">' + esc(tabs[i].label) + '</div>';
+            }
+            dom.tabs.innerHTML = html;
+            if (onClick) {
+                var els = dom.tabs.querySelectorAll(".tab");
+                for (var j = 0; j < els.length; j++) {
+                    (function (id) {
+                        els[j].addEventListener("click", function () { onClick(id); });
+                    })(els[j].getAttribute("data-tab"));
+                }
+            }
+        }
+
+        /* ---- Header identity ---- */
+        function setHeader(data) {
+            if (data.name != null && dom.biName) dom.biName.textContent = data.name;
+            if (data.sub != null && dom.biSub) dom.biSub.textContent = data.sub;
+            if (data.avatar && dom.biAvatar) dom.biAvatar.src = data.avatar;
+        }
+
+        /* ---- Visibility ---- */
+        function setVisible(visible) {
+            if (!dom.container) return;
+            dom.container.classList.toggle("hidden", !visible);
+        }
+
+        /* ---- Toast notifications ---- */
+        function notify(opts) {
+            if (!dom.toastStack) return;
+            opts = opts || {};
+            var kind = opts.kind || "info";
+            var icons = {
+                info: "fa-solid fa-circle-info",
+                success: "fa-solid fa-circle-check",
+                error: "fa-solid fa-circle-xmark",
+                warning: "fa-solid fa-triangle-exclamation"
+            };
+            var el = document.createElement("div");
+            el.className = "toast type-" + kind;
+            el.innerHTML =
+                '<i class="toast-icon ' + (icons[kind] || icons.info) + '"></i>' +
+                '<div class="toast-body">' +
+                '<span class="toast-title">' + esc(opts.title || "Solaris") + '</span>' +
+                (opts.text ? '<span class="toast-text">' + esc(opts.text) + '</span>' : "") +
+                '</div>';
+            dom.toastStack.appendChild(el);
+            requestAnimationFrame(function () { el.classList.add("show"); });
+            var dur = opts.duration || 3200;
+            setTimeout(function () {
+                el.classList.remove("show");
+                setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+            }, dur);
+        }
+
+        function isTransitioning() { return transitioning; }
+        function items() { return currentItems; }
+        function getActive() { return activeIndex; }
+
+        return {
+            render: render, setActive: setActive, updateItem: updateItem,
+            pressFeedback: pressFeedback, flashArrow: flashArrow,
+            renderTabs: renderTabs, setHeader: setHeader, setVisible: setVisible,
+            notify: notify, updateScrollbar: updateScrollbar,
+            isTransitioning: isTransitioning, items: items, getActive: getActive
+        };
+    })();
+
+    /* ============================================================================
+     *  BRIDGE — receives commands from the Lua core (DUI messages)
+     * ==========================================================================*/
+    var driven = false;
+
+    function handleMessage(msg) {
+        if (!msg || typeof msg.type !== "string" || msg.type.indexOf("solaris:") !== 0) return;
+        driven = true;
+        document.body.classList.remove("standalone");
+
+        switch (msg.type) {
+            case "solaris:init":
+                if (msg.theme) Theme.set(msg.theme[0], msg.theme[1], msg.theme[2]);
+                break;
+            case "solaris:setVisible":
+                View.setVisible(!!msg.visible);
+                break;
+            case "solaris:setHeader":
+                View.setHeader(msg);
+                break;
+            case "solaris:setTabs":
+                View.renderTabs(msg.tabs || [], msg.activeTab, function (id) {
+                    postToLua({ action: "tabClick", tab: id });
+                });
+                break;
+            case "solaris:setPage":
+                View.render(msg.items || [], msg.activeIndex || 0, msg.animateDir || null);
+                break;
+            case "solaris:setActive":
+                View.setActive(msg.index || 0);
+                break;
+            case "solaris:updateItem":
+                View.updateItem(msg.index, msg.patch || {});
+                break;
+            case "solaris:setTheme":
+                if (msg.rainbow === true) Theme.startRainbow();
+                else if (msg.rainbow === false) { Theme.stopRainbow(); if (msg.r != null) Theme.set(msg.r, msg.g, msg.b); }
+                else Theme.set(msg.r, msg.g, msg.b);
+                break;
+            case "solaris:notify":
+                View.notify(msg);
+                break;
+            case "solaris:pressFeedback":
+                View.pressFeedback(msg.index);
+                break;
+            case "solaris:flashArrow":
+                View.flashArrow(msg.index, msg.dir);
+                break;
+        }
+    }
+
+    /* Optional JS -> Lua channel. Only works if the executor exposes a NUI
+       callback endpoint; harmless no-op otherwise. Lua never depends on it. */
+    function postToLua(payload) {
+        try {
+            if (window.invokeNative && window.GetParentResourceName) {
+                fetch("https://" + window.GetParentResourceName() + "/solaris", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    body: JSON.stringify(payload)
+                }).catch(function () {});
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    window.addEventListener("message", function (event) { handleMessage(event.data); });
+
+    /* ============================================================================
+     *  STANDALONE — browser preview with local keyboard navigation
+     * ==========================================================================*/
+    var Standalone = (function () {
+        /* A compact sample tree purely for previewing the design in a browser. */
+        var pages = {
+            main: [
+                { label: "Self Options", type: "submenu", target: "self", icon: "fa-solid fa-user" },
+                { label: "Visual Options", type: "submenu", target: "visual", icon: "fa-solid fa-eye" },
+                { label: "Vehicle Options", type: "submenu", target: "vehicle", icon: "fa-solid fa-car" },
+                { label: "Settings", type: "submenu", target: "settings", icon: "fa-solid fa-gear" }
+            ],
+            self: [
+                { label: "Status", type: "separator" },
+                { label: "God Mode", type: "toggle", value: false, icon: "fa-solid fa-shield-halved", desc: "Block all incoming damage" },
+                { label: "Infinite Stamina", type: "toggle", value: true, icon: "fa-solid fa-person-running" },
+                { label: "Movement", type: "separator" },
+                { label: "Run Speed", type: "slider", value: 50, min: 0, max: 100, unit: "%", icon: "fa-solid fa-gauge-high" },
+                { label: "Heal", type: "action", icon: "fa-solid fa-kit-medical" }
+            ],
+            visual: [
+                { label: "FOV", type: "slider", value: 50, min: 10, max: 130, icon: "fa-solid fa-video" },
+                { label: "Time", type: "array", value: 1, options: ["Dawn", "Day", "Dusk", "Night"], icon: "fa-solid fa-clock" },
+                { label: "Theme Color", type: "color", value: "#b50000", isTheme: true, icon: "fa-solid fa-palette" },
+                { label: "Rainbow Theme", type: "toggle", value: false, isRainbow: true, icon: "fa-solid fa-rainbow" }
+            ],
+            vehicle: [
+                { label: "Username", type: "info", valueStr: "preview", icon: "fa-solid fa-id-badge" },
+                { label: "Repair Vehicle", type: "action", icon: "fa-solid fa-wrench" },
+                { label: "Engine Power", type: "slider", value: 100, min: 0, max: 1000, unit: "%", icon: "fa-solid fa-bolt" }
+            ],
+            settings: [
+                { label: "Open Menu Key", type: "keybind", keyStr: "INS", icon: "fa-solid fa-keyboard" },
+                { label: "Discord", type: "action", icon: "fa-brands fa-discord" }
+            ]
+        };
+        var navHistory = ["main"];
+        var indexHistory = [0];
+        var cooldown = false;
+
+        function curPage() { return navHistory[navHistory.length - 1]; }
+        function curItems() { return pages[curPage()]; }
+        function curIdx() { return indexHistory[indexHistory.length - 1]; }
+
+        function firstSelectable(items, start) {
+            var idx = start >= items.length ? 0 : start, loops = 0;
+            while (items[idx] && items[idx].type === "separator") {
+                idx++; if (idx >= items.length) idx = 0;
+                if (++loops > items.length) break;
+            }
+            return idx;
+        }
+
+        function show(dir) {
+            var items = curItems();
+            var idx = firstSelectable(items, curIdx());
+            indexHistory[indexHistory.length - 1] = idx;
+            View.render(items, idx, dir || null);
+        }
+
+        function navigate(step) {
+            if (cooldown || View.isTransitioning()) return;
+            cooldown = true;
+            var items = curItems();
+            var idx = curIdx(), loops = 0;
+            do {
+                idx += step;
+                if (idx < 0) idx = items.length - 1;
+                else if (idx >= items.length) idx = 0;
+                if (++loops > items.length) break;
+            } while (items[idx] && items[idx].type === "separator");
+            indexHistory[indexHistory.length - 1] = idx;
+            View.setActive(idx);
+            setTimeout(function () { cooldown = false; }, 110);
+        }
+
+        function enter() {
+            if (View.isTransitioning()) return;
+            var item = curItems()[curIdx()];
+            if (!item) return;
+            var idx = curIdx();
+            if (item.type === "submenu" && pages[item.target]) {
+                View.pressFeedback(idx);
+                navHistory.push(item.target);
+                indexHistory.push(0);
+                show("forward");
+            } else if (item.type === "toggle") {
+                item.value = !item.value;
+                View.updateItem(idx, { value: item.value });
+                View.pressFeedback(idx);
+                if (item.isRainbow) { if (item.value) Theme.startRainbow(); else { Theme.stopRainbow(); Theme.set(181, 0, 0); } }
+            } else if (item.type === "action") {
+                View.pressFeedback(idx);
+                View.notify({ title: item.label, text: "Action triggered (preview)", kind: "success" });
+            } else if (item.type === "color" && item.isTheme) {
+                openColor(item, idx);
+            }
+        }
+
+        function openColor(item, idx) {
+            var input = document.createElement("input");
+            input.type = "color"; input.value = item.value;
+            input.style.cssText = "position:absolute;opacity:0;pointer-events:none";
+            document.body.appendChild(input);
+            input.click();
+            input.addEventListener("input", function (e) {
+                item.value = e.target.value;
+                View.updateItem(idx, { value: e.target.value });
+                var rgb = Theme.hexToRgb(e.target.value);
+                Theme.set(rgb[0], rgb[1], rgb[2]);
+            });
+            input.addEventListener("change", function () { document.body.removeChild(input); });
+        }
+
+        function back() {
+            if (navHistory.length > 1 && !View.isTransitioning()) {
+                navHistory.pop(); indexHistory.pop();
+                show("backward");
+            }
+        }
+
+        function leftRight(dir) {
+            if (View.isTransitioning()) return;
+            var item = curItems()[curIdx()];
+            if (!item) return;
+            var idx = curIdx();
+            if (item.type === "slider") {
+                var step = (item.max - item.min) <= 20 ? 1 : Math.max(1, Math.round((item.max - item.min) / 50));
+                item.value = dir === "left"
+                    ? Math.max(item.min, item.value - step)
+                    : Math.min(item.max, item.value + step);
+                View.updateItem(idx, { value: item.value });
+            } else if (item.type === "array") {
+                item.value = dir === "left"
+                    ? (item.value > 0 ? item.value - 1 : item.options.length - 1)
+                    : (item.value < item.options.length - 1 ? item.value + 1 : 0);
+                View.updateItem(idx, { value: item.value });
+                View.flashArrow(idx, dir);
+            } else if (dir === "left") back();
+            else if (dir === "right" && item.type === "submenu") enter();
+        }
+
+        function start() {
+            document.body.classList.add("standalone");
+            View.renderTabs(
+                [{ id: "main", label: "Main" }, { id: "protections", label: "Protections" }, { id: "settings", label: "Settings" }],
+                "main",
+                function () { /* preview tabs are inert */ }
+            );
+            View.setHeader({ name: "Solaris", sub: "browser preview", avatar: "https://cdn.discordapp.com/embed/avatars/0.png" });
+            show();
+
+            document.addEventListener("keydown", function (e) {
+                if (driven) return; /* Lua took over */
+                if (e.key === "ArrowUp") { e.preventDefault(); navigate(-1); }
+                else if (e.key === "ArrowDown") { e.preventDefault(); navigate(1); }
+                else if (e.key === "ArrowLeft") { e.preventDefault(); leftRight("left"); }
+                else if (e.key === "ArrowRight") { e.preventDefault(); leftRight("right"); }
+                else if (e.key === "Enter") { e.preventDefault(); if (!e.repeat) enter(); }
+                else if (e.key === "Backspace") { e.preventDefault(); back(); }
+            });
+        }
+
+        function getPages() { return pages; }
+        return { start: start, getPages: getPages };
+    })();
+
+    /* ───────────────────────── Initial Loader Sequence ───────────────────────── */
+    var Loader = (function() {
+        var overlay = document.getElementById("loader-overlay");
+        var spinner = document.getElementById("loader-spinner");
+        var text = document.getElementById("loader-text");
+        var prompt = document.getElementById("bind-prompt");
+        var btnBind = document.getElementById("btn-bind");
+        var bindListen = document.getElementById("bind-listen");
+        var selectedKey = null;
+
+        function run(onComplete) {
+            if (!overlay) return onComplete();
+
+            // Hide the main menu while loading
+            View.setVisible(false);
+
+            setTimeout(function() { text.textContent = "Loading Assets..."; }, 500);
+            setTimeout(function() { text.textContent = "Authenticating..."; }, 1000);
+
+            setTimeout(function() {
+                spinner.style.display = "none";
+                text.style.display = "none";
+                prompt.style.display = "block";
+
+                btnBind.addEventListener("click", function() {
+                    btnBind.style.display = "none";
+                    bindListen.style.display = "block";
+                    
+                    var keyHandler = function(e) {
+                        e.preventDefault();
+                        selectedKey = e.key.toUpperCase();
+                        if (selectedKey === " ") selectedKey = "SPACE";
+                        
+                        document.removeEventListener("keydown", keyHandler);
+                        
+                        bindListen.textContent = "Keybind Set to: " + selectedKey;
+                        bindListen.style.animation = "none";
+                        bindListen.style.color = "#2ecc71";
+                        
+                        setTimeout(function() {
+                            overlay.classList.add("hidden");
+                            View.setVisible(true);
+                            if (onComplete) onComplete(selectedKey);
+                        }, 700);
+                    };
+                    
+                    document.addEventListener("keydown", keyHandler);
+                });
+            }, 1500);
+        }
+
+        return { run: run };
+    })();
+
+    /* ───────────────────────── Boot ───────────────────────── */
+    document.addEventListener("DOMContentLoaded", function () {
+        cacheDom();
+        dom.list.addEventListener("scroll", function () { View.updateScrollbar(); });
+
+        var duiMode = (window.__SOLARIS_DUI__ === true) || /[?&]dui=1\b/.test(window.location.search);
+        if (duiMode) {
+            View.setVisible(false);
+            var overlay = document.getElementById("loader-overlay");
+            if (overlay) overlay.style.display = "none";
+            return;
+        }
+
+        setTimeout(function () {
+            if (!driven) {
+                Loader.run(function(key) {
+                    if (key) {
+                        var settingsPage = Standalone.getPages().settings;
+                        if (settingsPage && settingsPage[0] && settingsPage[0].type === "keybind") {
+                            settingsPage[0].keyStr = key;
+                        }
+                    }
+                    Standalone.start();
+                });
+            }
+        }, 250);
+    });
+
+    /* Expose the view so the Lua bridge (or console) can poke it if needed. */
+    window.Solaris = { handleMessage: handleMessage, View: View, Theme: Theme };
+})();
+
+</script>
+</body>
+</html>
