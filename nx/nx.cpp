@@ -170,7 +170,7 @@ namespace nx
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14, 12));
         ImGui::PushStyleColor(ImGuiCol_ChildBg, t.group);
-        bool vis = ImGui::BeginChild(title, size, false, ImGuiWindowFlags_NoScrollbar);
+        bool vis = ImGui::BeginChild(title, size, ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar);
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
 
@@ -197,7 +197,7 @@ namespace nx
     }
 
     // ---------------------------------------------------------------- widgets
-    static float RowWidth() { return ImGui::GetContentRegionAvail().x - 14.f; }
+    static float RowWidth() { return ImGui::GetContentRegionAvail().x; }
 
     bool Checkbox(const char* label, bool* v)
     {
