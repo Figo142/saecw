@@ -28,7 +28,7 @@ namespace vx
     // window. always call EndWindow(), even if BeginWindow returned false.
     bool BeginWindow(const char* title, ImVec2 size, bool* open = nullptr);
     void EndWindow();
-    bool TopTab(const char* label, Icon icon, int idx, int* current);
+    bool Tab(const char* label, Icon icon, int idx, int* current);   // sidebar tab
     void BeginContent();
     void EndContent();
 

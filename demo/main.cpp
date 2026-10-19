@@ -27,12 +27,12 @@ int main()
     int tab = 0, sub = 0, preset = 0, target = 0, fov = 90, hitchance = 70;
     bool aimbot = true, silent = false, autofire = true, autostop = true, visibleOnly = false;
     bool glow = true, boxes = true, flagsOn[4] = { true, true, false, true }, antiaim = false;
-    float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 1.f, 0.18f, 0.45f, 1.f };
+    float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 0.64f, 1.f, 0.22f, 1.f };
     ImGuiKey bind = ImGuiKey_V;
     bool open = true;
     const char* targets[]  = { "Closest", "Head", "Chest", "Legit" };
     const char* flagsN[]   = { "Name", "Health", "Distance", "Weapon" };
-    const char* presets[]  = { "Velox", "Fatality", "Neverlose", "Emerald" };
+    const char* presets[]  = { "Toxic", "Ember", "Ice", "Violet" };
 
     while (!glfwWindowShouldClose(win) && open) {
         glfwPollEvents();
@@ -41,13 +41,13 @@ int main()
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos(ImVec2(60, 40), ImGuiCond_FirstUseEver);
-        if (vx::BeginWindow("VELOX", ImVec2(1200, 720), &open)) {
-            vx::TopTab("RAGE",    vx::Icon::Crosshair, 0, &tab);
-            vx::TopTab("LEGIT",   vx::Icon::Cursor,    1, &tab);
-            vx::TopTab("VISUALS", vx::Icon::Eye,       2, &tab);
-            vx::TopTab("MISC",    vx::Icon::Cog,       3, &tab);
-            vx::TopTab("SKINS",   vx::Icon::Diamond,   4, &tab);
-            vx::TopTab("CFG",     vx::Icon::Folder,    5, &tab);
+        if (vx::BeginWindow("VELOX", ImVec2(1180, 740), &open)) {
+            vx::Tab("RAGE",    vx::Icon::Crosshair, 0, &tab);
+            vx::Tab("LEGIT",   vx::Icon::Cursor,    1, &tab);
+            vx::Tab("VISUALS", vx::Icon::Eye,       2, &tab);
+            vx::Tab("MISC",    vx::Icon::Cog,       3, &tab);
+            vx::Tab("SKINS",   vx::Icon::Diamond,   4, &tab);
+            vx::Tab("CFG",     vx::Icon::Folder,    5, &tab);
 
             vx::BeginContent();
             if (tab == 0) {
