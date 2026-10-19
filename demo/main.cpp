@@ -27,12 +27,12 @@ int main()
     int tab = 0, sub = 0, preset = 0, target = 0, fov = 90, hitchance = 70;
     bool aimbot = true, silent = false, autofire = true, autostop = true, visibleOnly = false;
     bool glow = true, boxes = true, flagsOn[4] = { true, true, false, true }, antiaim = false;
-    float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 0.64f, 1.f, 0.22f, 1.f };
+    float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 0.16f, 0.5f, 1.f, 1.f };
     ImGuiKey bind = ImGuiKey_V;
     bool open = true;
     const char* targets[]  = { "Closest", "Head", "Chest", "Legit" };
     const char* flagsN[]   = { "Name", "Health", "Distance", "Weapon" };
-    const char* presets[]  = { "Toxic", "Ember", "Ice", "Violet" };
+    const char* presets[]  = { "Blue", "Toxic", "Ember", "Violet" };
 
     while (!glfwWindowShouldClose(win) && open) {
         glfwPollEvents();

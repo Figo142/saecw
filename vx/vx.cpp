@@ -14,6 +14,10 @@ namespace vx
     static const float kSide = 224.f, kHead = 84.f, kBottom = 36.f, kPad = 26.f, kRow = 36.f;
 
     static const Theme kPresets[] = {
+        // blue: navy graphite, flat-ish blue accent
+        { {0.058f,0.068f,0.092f,1}, {0.033f,0.040f,0.058f,1}, {0.085f,0.100f,0.130f,1}, {0.070f,0.083f,0.110f,1},
+          {0.115f,0.135f,0.175f,1}, {1,1,1,0.07f}, {0.92f,0.95f,1.00f,1}, {0.50f,0.57f,0.68f,1},
+          {0.16f,0.50f,1.00f,1}, {0.28f,0.66f,1.00f,1} },
         // toxic: graphite + lime/teal
         { {0.064f,0.068f,0.078f,1}, {0.034f,0.037f,0.044f,1}, {0.095f,0.101f,0.114f,1}, {0.078f,0.083f,0.095f,1},
           {0.130f,0.138f,0.156f,1}, {1,1,1,0.07f}, {0.93f,0.95f,0.96f,1}, {0.52f,0.56f,0.61f,1},
@@ -22,16 +26,12 @@ namespace vx
         { {0.078f,0.066f,0.064f,1}, {0.042f,0.035f,0.035f,1}, {0.112f,0.094f,0.090f,1}, {0.090f,0.076f,0.074f,1},
           {0.150f,0.128f,0.122f,1}, {1,1,1,0.07f}, {0.97f,0.94f,0.92f,1}, {0.62f,0.55f,0.52f,1},
           {1.00f,0.62f,0.10f,1}, {1.00f,0.25f,0.22f,1} },
-        // ice: cold slate + cyan/periwinkle
-        { {0.056f,0.066f,0.086f,1}, {0.030f,0.038f,0.054f,1}, {0.082f,0.098f,0.126f,1}, {0.066f,0.080f,0.104f,1},
-          {0.112f,0.134f,0.172f,1}, {1,1,1,0.07f}, {0.93f,0.96f,1.00f,1}, {0.50f,0.58f,0.70f,1},
-          {0.35f,0.82f,1.00f,1}, {0.58f,0.55f,1.00f,1} },
         // violet: neutral purple + orchid/blue
         { {0.072f,0.062f,0.098f,1}, {0.040f,0.034f,0.062f,1}, {0.106f,0.092f,0.140f,1}, {0.086f,0.074f,0.116f,1},
           {0.142f,0.124f,0.186f,1}, {1,1,1,0.07f}, {0.95f,0.93f,0.98f,1}, {0.58f,0.54f,0.68f,1},
           {0.78f,0.42f,1.00f,1}, {0.36f,0.56f,1.00f,1} },
     };
-    static const char* kPresetNames[] = { "Toxic", "Ember", "Ice", "Violet" };
+    static const char* kPresetNames[] = { "Blue", "Toxic", "Ember", "Violet" };
     static_assert(sizeof(Theme) == 10 * sizeof(ImVec4), "theme layout");
 
     static Theme  g_cur = kPresets[0], g_tgt = kPresets[0];
@@ -91,20 +91,6 @@ namespace vx
         dl->AddText(f, f->FontSize, p, c, s);
     }
     static ImVec2 TxtSize(ImFont* f, const char* s) { return f->CalcTextSizeA(f->FontSize, FLT_MAX, 0.f, s); }
-
-    static void GradText(ImDrawList* dl, ImFont* f, ImVec2 p, const char* s, float phase, float spacing, float alpha = 1.f)
-    {
-        float len = 0.f;
-        for (const char* c = s; *c; ++c) len += TxtSize(f, std::string(1, *c).c_str()).x + spacing;
-        float x = p.x, acc = 0.f;
-        for (const char* c = s; *c; ++c) {
-            char ch[2] = { *c, 0 };
-            float t = 0.5f + 0.5f * sinf(phase + acc / (len + 1.f) * 4.2f);
-            dl->AddText(f, f->FontSize, ImVec2(x, p.y), U32(A(Grad(t), alpha)), ch);
-            float w = TxtSize(f, ch).x + spacing;
-            x += w; acc += w;
-        }
-    }
 
     static void GradH(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& cl, const ImVec4& cr, float r)
     {
@@ -281,8 +267,8 @@ namespace vx
         dl->PushClipRect(ImVec2(p.x + kSide + 1, p.y + 1), ImVec2(e.x - 1, e.y - 1), true);
         for (int i = 0; i < 40; ++i) {
             float rr = 40.f + i * 9.f;
-            dl->AddCircleFilled(ImVec2(e.x - 90, p.y + 10), rr, U32(A(t.acc2, 0.0042f)), 48);
-            dl->AddCircleFilled(ImVec2(p.x + kSide + 60, e.y - 10), rr, U32(A(t.acc1, 0.0034f)), 48);
+            dl->AddCircleFilled(ImVec2(e.x - 90, p.y + 10), rr, U32(A(t.acc1, 0.0024f)), 48);
+            dl->AddCircleFilled(ImVec2(p.x + kSide + 60, e.y - 10), rr, U32(A(t.acc1, 0.0018f)), 48);
         }
         for (float y = p.y + 10.f; y < e.y - 4.f; y += 24.f) {
             for (float x = p.x + kSide + 14.f; x < e.x - 4.f; x += 24.f) {
@@ -297,12 +283,13 @@ namespace vx
         // logo
         {
             ImVec2 lp(p.x + 22, p.y + 22);
-            GradH(dl, lp, ImVec2(lp.x + 40, lp.y + 40), t.acc1, t.acc2, 11.f);
+            dl->AddRectFilled(lp, ImVec2(lp.x + 40, lp.y + 40), U32(t.acc1), 9.f);
             ImU32 dk = U32(OnAccent());
             dl->AddLine(ImVec2(lp.x + 11, lp.y + 12), ImVec2(lp.x + 20, lp.y + 29), dk, 3.2f);
             dl->AddLine(ImVec2(lp.x + 20, lp.y + 29), ImVec2(lp.x + 29, lp.y + 12), dk, 3.2f);
             ImFont* f = g_fonts.title;
-            GradText(dl, f, ImVec2(lp.x + 52, lp.y + 20 - f->FontSize * 0.5f - 1), "velox", g_time * 1.2f, 1.f);
+            Txt(dl, f, ImVec2(lp.x + 52, lp.y + 20 - f->FontSize * 0.5f - 1), U32(t.text), "velox");
+            dl->AddCircleFilled(ImVec2(lp.x + 52 + TxtSize(f, "velox").x + 5.f, lp.y + 30.f), 3.f, U32(t.acc1), 10);
             Txt(dl, g_fonts.small, ImVec2(p.x + 26, p.y + 82), U32(A(t.text_dim, 0.75f)), "NAVIGATION");
         }
 
@@ -313,7 +300,7 @@ namespace vx
             GradH(dl, a, b, A(t.frame, 0.8f), A(t.frame, 0.5f), 12.f);
             dl->AddRect(a, b, U32(t.border), 12.f);
             ImVec2 c(a.x + 30, (a.y + b.y) * 0.5f);
-            GradH(dl, ImVec2(c.x - 18, c.y - 18), ImVec2(c.x + 18, c.y + 18), t.acc1, t.acc2, 10.f);
+            dl->AddRectFilled(ImVec2(c.x - 18, c.y - 18), ImVec2(c.x + 18, c.y + 18), U32(t.acc1), 9.f);
             Txt(dl, fb, ImVec2(c.x - TxtSize(fb, "V").x * 0.5f, c.y - fb->FontSize * 0.5f), U32(OnAccent()), "V");
             dl->AddCircleFilled(ImVec2(c.x + 15, c.y + 15), 5.f, U32(ImVec4(0.2f, 0.9f, 0.5f, 1)), 12);
             dl->AddCircle(ImVec2(c.x + 15, c.y + 15), 5.f, U32(t.bg_bot), 12, 2.f);
@@ -390,16 +377,15 @@ namespace vx
             if (!g_ind_init) { g_ind_y = ty; g_ind_init = true; }
             g_ind_y += (ty - g_ind_y) * (1.f - expf(-g_dt * 16.f));
             ImVec2 a0(p.x, wp.y + g_ind_y), a1(p.x + w, wp.y + g_ind_y + h);
-            Glow(dl, a0, a1, t.acc1, 12.f, 0.25f);
-            GradH(dl, a0, a1, A(t.acc1, 0.17f), A(t.acc2, 0.08f), 12.f);
-            dl->AddRect(a0, a1, U32(A(Grad(0.f), 0.55f)), 12.f, 0, 1.5f);
+            dl->AddRectFilled(a0, a1, U32(A(t.acc1, 0.11f)), 6.f);
+            dl->AddRectFilled(ImVec2(a0.x, a0.y + 11), ImVec2(a0.x + 3, a1.y - 11), U32(t.acc1), 2.f);
         } else if (hv > 0.01f) {
-            GradH(dl, p, ImVec2(p.x + w, p.y + h), A(t.text, 0.05f * hv), A(t.text, 0.0f), 12.f);
+            dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.04f * hv)), 6.f);
         }
 
         ImVec4 base = Mix(Mix(t.text_dim, t.text, hv * 0.8f), t.text, a);
-        DrawIcon(dl, icon, ImVec2(p.x + 27, p.y + h * 0.5f), 9.f, U32(Mix(base, Grad(0.f), a)));
-        Txt(dl, f, ImVec2(p.x + 52 + 3.f * a, p.y + h * 0.5f - f->FontSize * 0.5f), U32(base), label);
+        DrawIcon(dl, icon, ImVec2(p.x + 27, p.y + h * 0.5f), 9.f, U32(Mix(base, t.acc1, a)));
+        Txt(dl, f, ImVec2(p.x + 52, p.y + h * 0.5f - f->FontSize * 0.5f), U32(base), label);
         if (sel) snprintf(g_title, sizeof(g_title), "%s", label);
         g_tabY += h + 4.f;
         return clicked;
