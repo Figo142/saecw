@@ -83,7 +83,7 @@ int main()
                     vx::Checkbox("Visible only", &visibleOnly);
                     vx::Checkbox("Force baim", &baim);
                     vx::Spacing(4);
-                    if (vx::Button("Reset values")) vx::Notify("Values reset", 2);
+                    if (vx::Button("Reset values")) vx::Notify("Values reset", "All aimbot values were set back to default.", 2);
                     vx::EndGroup();
                 }
             } else if (tab == 2) {
@@ -105,9 +105,9 @@ int main()
                 float colw = (ImGui::GetContentRegionAvail().x - 12.f) / 2.f;
                 if (vx::BeginGroup("Theme", ImVec2(colw, 0))) {
                     if (vx::Combo("Preset", &preset, presets, 4)) vx::SetPreset(preset);
-                    if (vx::Button("Save config")) vx::Notify("Config saved", 1);
+                    if (vx::Button("Save config")) vx::Notify("Config saved", "Your settings were written to disk.", 1);
                     vx::Spacing(2);
-                    if (vx::Button("Load config")) vx::Notify("Config loaded", 0);
+                    if (vx::Button("Load config")) vx::Notify("Config loaded", "Loaded the default config.", 0);
                     vx::EndGroup();
                 }
             }

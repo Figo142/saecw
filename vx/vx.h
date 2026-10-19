@@ -16,7 +16,7 @@ namespace vx
 
     struct Fonts { ImFont *body, *bold, *title, *small; };
 
-    enum class Icon { Crosshair, Pointer, Eye, Settings, Gem, Folder, User, Shield, Sliders, Swords, Target };
+    enum class Icon { Crosshair, Pointer, Eye, Settings, Gem, Folder, User, Shield, Sliders, Swords, Target, Check, Warn, Info, Bell };
 
     void   Init();                       // after ImGui::CreateContext(): loads fonts + style
     Fonts& GetFonts();
@@ -53,6 +53,7 @@ namespace vx
     void Spacing(float h = 8.f);
 
     // toasts, bottom right. 0 = info, 1 = success, 2 = warning
-    void Notify(const char* text, int kind = 0, float seconds = 3.f);
+    void Notify(const char* text, int kind = 0, float seconds = 3.5f);
+    void Notify(const char* title, const char* text, int kind = 0, float seconds = 3.5f);
     void RenderNotifications();          // call once per frame, even when the menu is hidden
 }
