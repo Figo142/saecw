@@ -833,26 +833,6 @@ namespace vx
     }
 
     // ---------------------------------------------------------------- toasts
-    static void GradH(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& cl, const ImVec4& cr, float r)
-    {
-        float w = b.x - a.x, h = b.y - a.y;
-        if (w <= 0.f || h <= 0.f) return;
-        r = fminf(r, fminf(w, h) * 0.5f);
-        int n = (int)ceilf(w);
-        for (int i = 0; i < n; ++i) {
-            float x = a.x + i, x1 = fminf(x + 1.f, b.x), cx = x + 0.5f - a.x, inset = 0.f;
-            if (cx < r)          { float d = r - cx;       inset = r - sqrtf(fmaxf(r * r - d * d, 0.f)); }
-            else if (cx > w - r) { float d = cx - (w - r); inset = r - sqrtf(fmaxf(r * r - d * d, 0.f)); }
-            dl->AddRectFilled(ImVec2(x, a.y + inset), ImVec2(x1, b.y - inset), U32(Mix(cl, cr, cx / w)));
-        }
-    }
-    static void Glow(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& c, float r, float k)
-    {
-        for (int i = 1; i <= 7; ++i)
-            dl->AddRect(ImVec2(a.x - i * 1.7f, a.y - i * 1.7f), ImVec2(b.x + i * 1.7f, b.y + i * 1.7f),
-                        U32(A(c, k * 0.07f * (8 - i) / 7.f)), r + i * 1.7f, 0, 2.f);
-    }
-
     struct Toast { std::string title, text; int kind; float life, age, y; bool placed; };
     static std::vector<Toast> g_toasts;
 
@@ -867,13 +847,6 @@ namespace vx
         Notify(kind == 1 ? "Success" : (kind == 2 ? "Warning" : "Info"), text, kind, seconds);
     }
 
-    static float EaseOutBack(float t)
-    {
-        const float c1 = 1.70158f, c3 = c1 + 1.f;
-        float u = t - 1.f;
-        return 1.f + c3 * u * u * u + c1 * u * u;
-    }
-
     void RenderNotifications()
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -881,75 +854,35 @@ namespace vx
         ImDrawList* dl = ImGui::GetForegroundDrawList();
         const Theme& t = g_cur;
         ImFont* fb = g_fonts.bold; ImFont* fs = g_fonts.small;
-        const float W = 352.f, H = 82.f, gap = 12.f;
-        int n = (int)g_toasts.size();
+        const float W = 320.f, H = 62.f, gap = 8.f;
 
-        for (int i = 0; i < n;) {
-            Toast& k = g_toasts[i];
-            k.age += dt;
-            if (k.age >= k.life + 0.4f) { g_toasts.erase(g_toasts.begin() + i); --n; continue; }
-            ++i;
+        for (size_t i = 0; i < g_toasts.size();) {
+            g_toasts[i].age += dt;
+            if (g_toasts[i].age >= g_toasts[i].life + 0.25f) g_toasts.erase(g_toasts.begin() + i);
+            else ++i;
         }
-        n = (int)g_toasts.size();
+        int n = (int)g_toasts.size();
         for (int i = 0; i < n; ++i) {
             Toast& k = g_toasts[i];
-            float target = io.DisplaySize.y - 26.f - H - (n - 1 - i) * (H + gap);
+            float target = io.DisplaySize.y - 22.f - H - (n - 1 - i) * (H + gap);
             if (!k.placed) { k.y = target; k.placed = true; }
-            k.y += (target - k.y) * (1.f - expf(-dt * 14.f));
+            k.y += (target - k.y) * (1.f - expf(-dt * 16.f));
 
-            ImVec4 c1, c2;
-            int icon;
-            if (k.kind == 1)      { c1 = ImVec4(0.18f, 0.88f, 0.52f, 1); c2 = ImVec4(0.12f, 0.74f, 0.90f, 1); icon = (int)Icon::Check; }
-            else if (k.kind == 2) { c1 = ImVec4(1.00f, 0.72f, 0.18f, 1); c2 = ImVec4(1.00f, 0.38f, 0.24f, 1); icon = (int)Icon::Warn; }
-            else                  { c1 = t.acc1;                          c2 = t.acc3;                          icon = (int)Icon::Info; }
-
-            float in  = EaseOutBack(Clamp01(k.age / 0.55f));
-            float out = k.age > k.life ? EaseOutCubic((k.age - k.life) / 0.4f) : 0.f;
-            float fade = Clamp01(k.age / 0.2f) * (1.f - out);
-            float x = io.DisplaySize.x - 26.f - W + (1.f - in) * (W + 60.f) + out * (W + 60.f);
+            ImVec4 kc = k.kind == 1 ? ImVec4(0.25f, 0.85f, 0.45f, 1) : (k.kind == 2 ? ImVec4(1.f, 0.70f, 0.20f, 1) : t.acc1);
+            float in  = EaseOutCubic(Clamp01(k.age / 0.25f));
+            float out = k.age > k.life ? EaseOutCubic((k.age - k.life) / 0.25f) : 0.f;
+            float x = io.DisplaySize.x - 22.f - W + (1.f - in) * (W + 30.f) + out * (W + 30.f);
             ImVec2 a(x, k.y), b(x + W, k.y + H);
 
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade);
-            Glow(dl, a, b, c1, 12.f, 0.55f);
-            dl->AddRectFilled(a, b, U32(A(t.panel_top, 0.98f)), 12.f);
-            GradH(dl, a, b, A(c1, 0.20f), A(c2, 0.02f), 12.f);
-            dl->AddRect(a, b, U32(A(c1, 0.45f)), 12.f);
-            dl->AddLine(ImVec2(a.x + 14, a.y + 1), ImVec2(b.x - 14, a.y + 1), U32(ImVec4(1, 1, 1, 0.10f)));
-
-            // sweep that runs once when the toast arrives
-            if (k.age < 0.9f) {
-                float u = k.age / 0.9f, x0 = a.x - 60.f + (W + 120.f) * EaseOutCubic(u);
-                dl->PushClipRect(a, b, true);
-                dl->AddQuadFilled(ImVec2(x0, a.y), ImVec2(x0 + 46, a.y), ImVec2(x0 + 6, b.y), ImVec2(x0 - 40, b.y), U32(ImVec4(1, 1, 1, 0.13f * (1.f - u))));
-                dl->PopClipRect();
-            }
-
-            // badge
-            ImVec2 b0(a.x + 18, a.y + (H - 46.f) * 0.5f - 3.f), b1(b0.x + 46, b0.y + 46);
-            Glow(dl, b0, b1, c1, 14.f, 0.45f);
-            GradH(dl, b0, b1, c1, c2, 14.f);
-            DrawSvgIcon(dl, (Icon)icon, ImVec2((b0.x + b1.x) * 0.5f, (b0.y + b1.y) * 0.5f), 26.f, U32(ImVec4(1, 1, 1, 1)), 1.f);
-            if (k.age < 0.8f) {
-                float u = k.age / 0.8f;
-                dl->AddCircle(ImVec2((b0.x + b1.x) * 0.5f, (b0.y + b1.y) * 0.5f), 24.f + 18.f * EaseOutCubic(u), U32(A(c1, 0.55f * (1.f - u))), 40, 2.f);
-            }
-
-            Txt(dl, fb, ImVec2(a.x + 78, a.y + 13), U32(t.text), k.title.c_str());
-            dl->PushClipRect(ImVec2(a.x + 78, a.y), ImVec2(b.x - 14, b.y), true);
-            Txt(dl, fs, ImVec2(a.x + 78, a.y + 38), U32(Mix(t.text_dim, t.text, 0.35f)), k.text.c_str());
+            dl->AddRectFilled(a, b, U32(A(t.panel_top, 0.98f)), 3.f);
+            dl->AddRect(a, b, U32(A(t.text, 0.12f)), 3.f);
+            dl->AddRectFilled(a, ImVec2(a.x + 3, b.y), U32(kc), 3.f, ImDrawFlags_RoundCornersLeft);
+            Txt(dl, fb, ImVec2(a.x + 18, a.y + 8), U32(t.text), k.title.c_str());
+            dl->PushClipRect(ImVec2(a.x, a.y), ImVec2(b.x - 10, b.y), true);
+            Txt(dl, fs, ImVec2(a.x + 18, a.y + 33), U32(t.text_dim), k.text.c_str());
             dl->PopClipRect();
-
-            // time bar
             float pk = Clamp01(1.f - k.age / k.life);
-            ImVec2 p0(a.x + 78, b.y - 15), p1(b.x - 18, b.y - 12);
-            GradH(dl, p0, p1, A(t.text, 0.09f), A(t.text, 0.09f), 1.5f);
-            if (pk > 0.f) {
-                ImVec2 pe(p0.x + (p1.x - p0.x) * pk, p1.y);
-                GradH(dl, p0, pe, c1, c2, 1.5f);
-                dl->AddCircleFilled(ImVec2(pe.x, (p0.y + p1.y) * 0.5f), 5.f, U32(A(c2, 0.30f)), 16);
-                dl->AddCircleFilled(ImVec2(pe.x, (p0.y + p1.y) * 0.5f), 2.5f, U32(ImVec4(1, 1, 1, 0.95f)), 12);
-            }
-            ImGui::PopStyleVar();
+            dl->AddRectFilled(ImVec2(a.x + 3, b.y - 2), ImVec2(a.x + 3 + (W - 3) * pk, b.y), U32(A(kc, 0.85f)));
         }
     }
 }
