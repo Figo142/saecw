@@ -1,21 +1,20 @@
 #pragma once
 #include "imgui.h"
 
-// velox: imgui widget kit. gradients, glow, animated everything.
+// velox: flat imgui widget kit. no gradients, no glow, sharp and compact.
 // backend agnostic. needs imgui (1.91.x) only. fonts are embedded.
 namespace vx
 {
     struct Theme
     {
-        ImVec4 bg_top, bg_bot;          // window gradient
-        ImVec4 panel_top, panel_bot;    // group gradient
+        ImVec4 bg_top, bg_bot;          // window / sidebar base
+        ImVec4 panel_top, panel_bot;    // popups
         ImVec4 frame, border;
         ImVec4 text, text_dim;
-        ImVec4 acc1, acc2;              // accent gradient (left -> right)
+        ImVec4 acc1, acc2;              // accent (acc2 = hover/secondary tone)
     };
 
     struct Fonts { ImFont *body, *bold, *title, *small; };
-    enum class Icon { Crosshair, Cursor, Eye, Cog, Diamond, Folder };
 
     void   Init();                       // after ImGui::CreateContext(): loads fonts + style
     Fonts& GetFonts();
@@ -28,7 +27,7 @@ namespace vx
     // window. always call EndWindow(), even if BeginWindow returned false.
     bool BeginWindow(const char* title, ImVec2 size, bool* open = nullptr);
     void EndWindow();
-    bool Tab(const char* label, Icon icon, int idx, int* current);   // sidebar tab
+    bool Tab(const char* label, int idx, int* current);   // sidebar tab
     void BeginContent();
     void EndContent();
 

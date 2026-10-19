@@ -32,7 +32,7 @@ int main()
     bool open = true;
     const char* targets[]  = { "Closest", "Head", "Chest", "Legit" };
     const char* flagsN[]   = { "Name", "Health", "Distance", "Weapon" };
-    const char* presets[]  = { "Blue", "Toxic", "Ember", "Violet" };
+    const char* presets[]  = { "Blue", "Red", "Lime", "Violet" };
 
     while (!glfwWindowShouldClose(win) && open) {
         glfwPollEvents();
@@ -41,13 +41,13 @@ int main()
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos(ImVec2(60, 40), ImGuiCond_FirstUseEver);
-        if (vx::BeginWindow("VELOX", ImVec2(1180, 740), &open)) {
-            vx::Tab("RAGE",    vx::Icon::Crosshair, 0, &tab);
-            vx::Tab("LEGIT",   vx::Icon::Cursor,    1, &tab);
-            vx::Tab("VISUALS", vx::Icon::Eye,       2, &tab);
-            vx::Tab("MISC",    vx::Icon::Cog,       3, &tab);
-            vx::Tab("SKINS",   vx::Icon::Diamond,   4, &tab);
-            vx::Tab("CFG",     vx::Icon::Folder,    5, &tab);
+        if (vx::BeginWindow("VELOX", ImVec2(1100, 700), &open)) {
+            vx::Tab("RAGE", 0, &tab);
+            vx::Tab("LEGIT", 1, &tab);
+            vx::Tab("VISUALS", 2, &tab);
+            vx::Tab("MISC", 3, &tab);
+            vx::Tab("SKINS", 4, &tab);
+            vx::Tab("CFG", 5, &tab);
 
             vx::BeginContent();
             if (tab == 0) {

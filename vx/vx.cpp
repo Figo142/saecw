@@ -11,32 +11,32 @@
 namespace vx
 {
     // ------------------------------------------------------------------ state
-    static const float kSide = 224.f, kHead = 84.f, kBottom = 36.f, kPad = 26.f, kRow = 36.f;
+    static const float kSide = 196.f, kHead = 42.f, kBottom = 32.f, kPad = 22.f, kRow = 34.f;
 
     static const Theme kPresets[] = {
-        // blue: navy graphite, flat-ish blue accent
-        { {0.058f,0.068f,0.092f,1}, {0.033f,0.040f,0.058f,1}, {0.085f,0.100f,0.130f,1}, {0.070f,0.083f,0.110f,1},
-          {0.115f,0.135f,0.175f,1}, {1,1,1,0.07f}, {0.92f,0.95f,1.00f,1}, {0.50f,0.57f,0.68f,1},
-          {0.16f,0.50f,1.00f,1}, {0.28f,0.66f,1.00f,1} },
-        // toxic: graphite + lime/teal
-        { {0.064f,0.068f,0.078f,1}, {0.034f,0.037f,0.044f,1}, {0.095f,0.101f,0.114f,1}, {0.078f,0.083f,0.095f,1},
-          {0.130f,0.138f,0.156f,1}, {1,1,1,0.07f}, {0.93f,0.95f,0.96f,1}, {0.52f,0.56f,0.61f,1},
-          {0.64f,1.00f,0.22f,1}, {0.10f,0.92f,0.72f,1} },
-        // ember: warm graphite + amber/red
-        { {0.078f,0.066f,0.064f,1}, {0.042f,0.035f,0.035f,1}, {0.112f,0.094f,0.090f,1}, {0.090f,0.076f,0.074f,1},
-          {0.150f,0.128f,0.122f,1}, {1,1,1,0.07f}, {0.97f,0.94f,0.92f,1}, {0.62f,0.55f,0.52f,1},
-          {1.00f,0.62f,0.10f,1}, {1.00f,0.25f,0.22f,1} },
-        // violet: neutral purple + orchid/blue
-        { {0.072f,0.062f,0.098f,1}, {0.040f,0.034f,0.062f,1}, {0.106f,0.092f,0.140f,1}, {0.086f,0.074f,0.116f,1},
-          {0.142f,0.124f,0.186f,1}, {1,1,1,0.07f}, {0.95f,0.93f,0.98f,1}, {0.58f,0.54f,0.68f,1},
-          {0.78f,0.42f,1.00f,1}, {0.36f,0.56f,1.00f,1} },
+        // blue
+        { {0.066f,0.074f,0.094f,1}, {0.045f,0.052f,0.068f,1}, {0.090f,0.102f,0.130f,1}, {0.075f,0.086f,0.112f,1},
+          {0.110f,0.125f,0.158f,1}, {1,1,1,0.09f}, {0.90f,0.93f,0.98f,1}, {0.48f,0.54f,0.65f,1},
+          {0.19f,0.52f,1.00f,1}, {0.32f,0.62f,1.00f,1} },
+        // red
+        { {0.075f,0.068f,0.070f,1}, {0.050f,0.045f,0.047f,1}, {0.100f,0.090f,0.092f,1}, {0.085f,0.076f,0.078f,1},
+          {0.125f,0.112f,0.115f,1}, {1,1,1,0.09f}, {0.95f,0.92f,0.92f,1}, {0.58f,0.52f,0.53f,1},
+          {0.92f,0.17f,0.20f,1}, {1.00f,0.32f,0.33f,1} },
+        // lime
+        { {0.068f,0.072f,0.078f,1}, {0.046f,0.050f,0.055f,1}, {0.092f,0.098f,0.108f,1}, {0.078f,0.083f,0.092f,1},
+          {0.118f,0.126f,0.140f,1}, {1,1,1,0.09f}, {0.93f,0.95f,0.95f,1}, {0.52f,0.56f,0.58f,1},
+          {0.62f,0.95f,0.22f,1}, {0.72f,1.00f,0.36f,1} },
+        // violet
+        { {0.074f,0.066f,0.094f,1}, {0.050f,0.044f,0.068f,1}, {0.100f,0.090f,0.130f,1}, {0.085f,0.076f,0.112f,1},
+          {0.130f,0.116f,0.170f,1}, {1,1,1,0.09f}, {0.94f,0.92f,0.98f,1}, {0.56f,0.52f,0.66f,1},
+          {0.62f,0.38f,1.00f,1}, {0.72f,0.50f,1.00f,1} },
     };
-    static const char* kPresetNames[] = { "Blue", "Toxic", "Ember", "Violet" };
+    static const char* kPresetNames[] = { "Blue", "Red", "Lime", "Violet" };
     static_assert(sizeof(Theme) == 10 * sizeof(ImVec4), "theme layout");
 
     static Theme  g_cur = kPresets[0], g_tgt = kPresets[0];
     static Fonts  g_fonts = {};
-    static float  g_time = 0.f, g_dt = 0.016f, g_alpha = 0.f, g_page = 1.f;
+    static float  g_time = 0.f, g_dt = 0.016f;
     static float  g_tabY = 0.f, g_ind_y = 0.f, g_base_alpha = 1.f;
     static bool   g_ind_init = false;
     static char   g_title[32] = "";
@@ -57,18 +57,18 @@ namespace vx
     }
     static ImVec4 A(const ImVec4& c, float a) { return ImVec4(c.x, c.y, c.z, c.w * a); }
     static ImU32  U32(const ImVec4& c) { return ImGui::GetColorU32(c); }
-    static ImVec4 Grad(float t) { return Mix(g_cur.acc1, g_cur.acc2, t); }
     static float  Clamp01(float x) { return x < 0.f ? 0.f : (x > 1.f ? 1.f : x); }
     static float  EaseOutCubic(float t) { t = 1.f - Clamp01(t); return 1.f - t * t * t; }
-    static float  EaseOutBack(float t)
+
+    static ImVec4 OnAccent()
     {
-        const float c1 = 1.70158f, c3 = c1 + 1.f;
-        float u = t - 1.f;
-        return 1.f + c3 * u * u * u + c1 * u * u;
+        const ImVec4& c = g_cur.acc1;
+        float l = 0.299f * c.x + 0.587f * c.y + 0.114f * c.z;
+        return l > 0.55f ? ImVec4(0.04f, 0.05f, 0.06f, 1) : ImVec4(1, 1, 1, 1);
     }
 
     // exponential approach (hovers)
-    static float Anim(ImGuiID id, float target, int slot, float speed = 14.f)
+    static float Anim(ImGuiID id, float target, int slot, float speed = 16.f)
     {
         float& v = *ImGui::GetStateStorage()->GetFloatRef(id + (ImGuiID)slot * 7919u, target);
         float s = g_dt * speed;
@@ -86,103 +86,24 @@ namespace vx
         return v;
     }
 
-    static void Txt(ImDrawList* dl, ImFont* f, ImVec2 p, ImU32 c, const char* s)
-    {
-        dl->AddText(f, f->FontSize, p, c, s);
-    }
+    static void Txt(ImDrawList* dl, ImFont* f, ImVec2 p, ImU32 c, const char* s) { dl->AddText(f, f->FontSize, p, c, s); }
     static ImVec2 TxtSize(ImFont* f, const char* s) { return f->CalcTextSizeA(f->FontSize, FLT_MAX, 0.f, s); }
-
-    static void GradH(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& cl, const ImVec4& cr, float r)
-    {
-        float w = b.x - a.x, h = b.y - a.y;
-        if (w <= 0.f || h <= 0.f) return;
-        r = fminf(r, fminf(w, h) * 0.5f);
-        int n = (int)ceilf(w);
-        for (int i = 0; i < n; ++i) {
-            float x = a.x + i, x1 = fminf(x + 1.f, b.x), cx = x + 0.5f - a.x, inset = 0.f;
-            if (cx < r)          { float d = r - cx;       inset = r - sqrtf(fmaxf(r * r - d * d, 0.f)); }
-            else if (cx > w - r) { float d = cx - (w - r); inset = r - sqrtf(fmaxf(r * r - d * d, 0.f)); }
-            dl->AddRectFilled(ImVec2(x, a.y + inset), ImVec2(x1, b.y - inset), U32(Mix(cl, cr, cx / w)));
-        }
-    }
-
-    static void GradV(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& ct, const ImVec4& cb, float r)
-    {
-        float w = b.x - a.x, h = b.y - a.y;
-        if (w <= 0.f || h <= 0.f) return;
-        r = fminf(r, fminf(w, h) * 0.5f);
-        for (int i = 0; i < (int)ceilf(r); ++i) {
-            float d = r - i - 0.5f, inset = r - sqrtf(fmaxf(r * r - d * d, 0.f));
-            dl->AddRectFilled(ImVec2(a.x + inset, a.y + i), ImVec2(b.x - inset, a.y + i + 1.f), U32(Mix(ct, cb, (i + 0.5f) / h)));
-            dl->AddRectFilled(ImVec2(a.x + inset, b.y - i - 1.f), ImVec2(b.x - inset, b.y - i), U32(Mix(ct, cb, 1.f - (i + 0.5f) / h)));
-        }
-        float t0 = r / h;
-        dl->AddRectFilledMultiColor(ImVec2(a.x, a.y + ceilf(r)), ImVec2(b.x, b.y - ceilf(r)),
-            U32(Mix(ct, cb, t0)), U32(Mix(ct, cb, t0)), U32(Mix(ct, cb, 1.f - t0)), U32(Mix(ct, cb, 1.f - t0)));
-    }
-
-    static void Glow(ImDrawList* dl, ImVec2 a, ImVec2 b, const ImVec4& c, float r, float k)
-    {
-        for (int i = 1; i <= 6; ++i)
-            dl->AddRect(ImVec2(a.x - i * 1.6f, a.y - i * 1.6f), ImVec2(b.x + i * 1.6f, b.y + i * 1.6f),
-                        U32(A(c, k * 0.075f * (7 - i) / 6.f)), r + i * 1.6f, 0, 2.f);
-    }
-
-    static void DrawIcon(ImDrawList* dl, Icon ic, ImVec2 c, float r, ImU32 col)
-    {
-        const float th = 1.8f;
-        auto P = [&](float x, float y) { return ImVec2(c.x + x * r, c.y + y * r); };
-        switch (ic) {
-        case Icon::Crosshair:
-            dl->AddCircle(c, r * 0.62f, col, 24, th);
-            dl->AddLine(P(0, -1), P(0, -0.35f), col, th); dl->AddLine(P(0, 1), P(0, 0.35f), col, th);
-            dl->AddLine(P(-1, 0), P(-0.35f, 0), col, th); dl->AddLine(P(1, 0), P(0.35f, 0), col, th);
-            break;
-        case Icon::Cursor: {
-            ImVec2 pts[7] = { P(-0.55f,-0.95f), P(-0.55f,0.75f), P(-0.18f,0.38f), P(0.12f,1.0f), P(0.42f,0.86f), P(0.14f,0.28f), P(0.62f,0.22f) };
-            dl->AddPolyline(pts, 7, col, ImDrawFlags_Closed, th);
-        } break;
-        case Icon::Eye:
-            dl->AddBezierQuadratic(P(-1, 0), P(0, -1.35f), P(1, 0), col, th);
-            dl->AddBezierQuadratic(P(-1, 0), P(0, 1.35f), P(1, 0), col, th);
-            dl->AddCircleFilled(c, r * 0.36f, col, 16);
-            break;
-        case Icon::Cog:
-            dl->AddCircle(c, r * 0.5f, col, 20, th);
-            for (int i = 0; i < 8; ++i) {
-                float a = i * IM_PI / 4.f;
-                dl->AddLine(P(cosf(a) * 0.72f, sinf(a) * 0.72f), P(cosf(a) * 1.02f, sinf(a) * 1.02f), col, th + 0.8f);
-            }
-            dl->AddCircle(c, r * 0.76f, col, 24, th * 0.7f);
-            break;
-        case Icon::Diamond:
-            dl->AddQuad(P(0, -1), P(0.85f, 0), P(0, 1), P(-0.85f, 0), col, th);
-            dl->AddLine(P(-0.85f, 0), P(0.85f, 0), col, th * 0.7f);
-            break;
-        case Icon::Folder:
-            dl->AddRect(P(-1, -0.55f), P(1, 0.8f), col, 3.f, 0, th);
-            dl->AddLine(P(-1, -0.55f), P(-0.55f, -0.95f), col, th);
-            dl->AddLine(P(-0.55f, -0.95f), P(-0.05f, -0.95f), col, th);
-            dl->AddLine(P(-0.05f, -0.95f), P(0.2f, -0.55f), col, th);
-            break;
-        }
-    }
 
     // ------------------------------------------------------------------ setup
     static void ApplyStyle()
     {
         ImGuiStyle& s = ImGui::GetStyle();
         const Theme& t = g_cur;
-        s.PopupRounding = 10.f; s.PopupBorderSize = 1.f; s.ChildBorderSize = 0.f; s.WindowBorderSize = 0.f;
-        s.FrameRounding = 6.f; s.GrabRounding = 6.f; s.ScrollbarSize = 5.f; s.ScrollbarRounding = 5.f;
+        s.PopupRounding = 3.f; s.PopupBorderSize = 1.f; s.ChildBorderSize = 0.f; s.WindowBorderSize = 0.f;
+        s.FrameRounding = 3.f; s.GrabRounding = 3.f; s.ScrollbarSize = 4.f; s.ScrollbarRounding = 2.f;
         s.ItemSpacing = ImVec2(10, 6);
 
         ImVec4* c = s.Colors;
         c[ImGuiCol_Text]            = t.text;
         c[ImGuiCol_TextDisabled]    = t.text_dim;
         c[ImGuiCol_WindowBg]        = t.bg_top;
-        c[ImGuiCol_PopupBg]         = Mix(t.panel_top, t.bg_top, 0.35f);
-        c[ImGuiCol_Border]          = A(Mix(t.border, t.acc1, 0.25f), 1.f);
+        c[ImGuiCol_PopupBg]         = t.panel_top;
+        c[ImGuiCol_Border]          = A(t.text, 0.12f);
         c[ImGuiCol_FrameBg]         = t.frame;
         c[ImGuiCol_FrameBgHovered]  = Mix(t.frame, t.acc1, 0.15f);
         c[ImGuiCol_FrameBgActive]   = Mix(t.frame, t.acc1, 0.25f);
@@ -201,7 +122,7 @@ namespace vx
     {
         ImVec4* c = (ImVec4*)&g_cur;
         const ImVec4* t = (const ImVec4*)&g_tgt;
-        float k = 1.f - expf(-g_dt * 7.f);
+        float k = 1.f - expf(-g_dt * 8.f);
         for (int i = 0; i < 10; ++i) c[i] = Mix(c[i], t[i], k);
     }
 
@@ -211,23 +132,16 @@ namespace vx
         static const ImWchar ranges[] = { 0x20, 0x17F, 0 };
         ImFontConfig cfg;
         cfg.OversampleH = 3; cfg.OversampleV = 2; cfg.GlyphRanges = ranges;
-        g_fonts.body  = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_medium_compressed_data,   vx_poppins_medium_compressed_size,   22.f, &cfg);
-        g_fonts.bold  = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_semibold_compressed_data, vx_poppins_semibold_compressed_size, 22.f, &cfg);
-        g_fonts.title = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_semibold_compressed_data, vx_poppins_semibold_compressed_size, 38.f, &cfg);
-        g_fonts.small = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_medium_compressed_data,   vx_poppins_medium_compressed_size,   18.f, &cfg);
+        g_fonts.body  = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_medium_compressed_data,   vx_poppins_medium_compressed_size,   21.f, &cfg);
+        g_fonts.bold  = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_semibold_compressed_data, vx_poppins_semibold_compressed_size, 21.f, &cfg);
+        g_fonts.title = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_semibold_compressed_data, vx_poppins_semibold_compressed_size, 32.f, &cfg);
+        g_fonts.small = io.Fonts->AddFontFromMemoryCompressedTTF(vx_poppins_medium_compressed_data,   vx_poppins_medium_compressed_size,   17.f, &cfg);
         io.FontDefault = g_fonts.body;
         g_cur = g_tgt = kPresets[0];
         ApplyStyle();
     }
 
     // ----------------------------------------------------------------- window
-    static ImVec4 OnAccent()
-    {
-        ImVec4 c = Grad(0.5f);
-        float l = 0.299f * c.x + 0.587f * c.y + 0.114f * c.z;
-        return l > 0.55f ? ImVec4(0.04f, 0.05f, 0.06f, 1) : ImVec4(1, 1, 1, 1);
-    }
-
     bool BeginWindow(const char* title, ImVec2 size, bool* open)
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -235,14 +149,11 @@ namespace vx
         g_time += g_dt;
         ThemeStep();
         ApplyStyle();
-        g_alpha = Clamp01(g_alpha + g_dt * 3.2f);
-        g_page  = Clamp01(g_page + g_dt * 3.6f);
-        g_open  = open;
+        g_open = open;
 
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, EaseOutCubic(g_alpha));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f);
         bool vis = ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground |
             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav);
         if (!vis) return false;
@@ -253,121 +164,82 @@ namespace vx
         ImVec2 p = ImGui::GetWindowPos(), e(p.x + size.x, p.y + size.y);
         g_wpos = p; g_wsize = size;
 
-        Glow(dl, p, e, t.acc1, 10.f, 0.22f);
-        GradV(dl, p, e, t.bg_top, t.bg_bot, 10.f);
+        dl->AddRectFilled(p, e, U32(t.bg_top), 4.f);
+        dl->AddRectFilled(p, ImVec2(p.x + kSide, e.y), U32(t.bg_bot), 4.f, ImDrawFlags_RoundCornersLeft);
+        dl->AddLine(ImVec2(p.x + kSide, p.y), ImVec2(p.x + kSide, e.y), U32(A(t.text, 0.08f)), 1.f);
+        dl->AddLine(ImVec2(p.x + kSide, p.y + kHead), ImVec2(e.x, p.y + kHead), U32(A(t.text, 0.08f)), 1.f);
 
-        // sidebar (same shape, clipped)
-        ImVec4 black(0, 0, 0, 1);
-        dl->PushClipRect(p, ImVec2(p.x + kSide, e.y), true);
-        GradV(dl, p, e, Mix(t.bg_bot, black, 0.30f), Mix(t.bg_bot, black, 0.55f), 10.f);
-        dl->PopClipRect();
-        dl->AddLine(ImVec2(p.x + kSide, p.y + 1), ImVec2(p.x + kSide, e.y - 1), U32(t.border), 1.f);
+        // wordmark
+        ImFont* ft = g_fonts.title;
+        Txt(dl, ft, ImVec2(p.x + 22, p.y + 16), U32(t.text), "VELOX");
+        dl->AddRectFilled(ImVec2(p.x + 22, p.y + 16 + ft->FontSize + 4), ImVec2(p.x + 44, p.y + 16 + ft->FontSize + 6), U32(t.acc1));
 
-        // content backdrop: glow + wave-lit dot grid
-        dl->PushClipRect(ImVec2(p.x + kSide + 1, p.y + 1), ImVec2(e.x - 1, e.y - 1), true);
-        for (int i = 0; i < 40; ++i) {
-            float rr = 40.f + i * 9.f;
-            dl->AddCircleFilled(ImVec2(e.x - 90, p.y + 10), rr, U32(A(t.acc1, 0.0024f)), 48);
-            dl->AddCircleFilled(ImVec2(p.x + kSide + 60, e.y - 10), rr, U32(A(t.acc1, 0.0018f)), 48);
-        }
-        for (float y = p.y + 10.f; y < e.y - 4.f; y += 24.f) {
-            for (float x = p.x + kSide + 14.f; x < e.x - 4.f; x += 24.f) {
-                float w = sinf((x - p.x) * 0.011f + (y - p.y) * 0.007f - g_time * 0.9f);
-                w = w > 0.f ? w * w * w * w * w * w : 0.f;
-                float u = (x - p.x - kSide) / (size.x - kSide);
-                dl->AddRectFilled(ImVec2(x, y), ImVec2(x + 2.f, y + 2.f), U32(A(Grad(u), 0.04f + 0.16f * w)));
-            }
-        }
-        dl->PopClipRect();
-
-        // logo
-        {
-            ImVec2 lp(p.x + 22, p.y + 22);
-            dl->AddRectFilled(lp, ImVec2(lp.x + 40, lp.y + 40), U32(t.acc1), 9.f);
-            ImU32 dk = U32(OnAccent());
-            dl->AddLine(ImVec2(lp.x + 11, lp.y + 12), ImVec2(lp.x + 20, lp.y + 29), dk, 3.2f);
-            dl->AddLine(ImVec2(lp.x + 20, lp.y + 29), ImVec2(lp.x + 29, lp.y + 12), dk, 3.2f);
-            ImFont* f = g_fonts.title;
-            Txt(dl, f, ImVec2(lp.x + 52, lp.y + 20 - f->FontSize * 0.5f - 1), U32(t.text), "velox");
-            dl->AddCircleFilled(ImVec2(lp.x + 52 + TxtSize(f, "velox").x + 5.f, lp.y + 30.f), 3.f, U32(t.acc1), 10);
-            Txt(dl, g_fonts.small, ImVec2(p.x + 26, p.y + 82), U32(A(t.text_dim, 0.75f)), "NAVIGATION");
-        }
-
-        // user card
+        // user line at the bottom of the sidebar
         {
             ImFont* fb = g_fonts.bold; ImFont* fs = g_fonts.small;
-            ImVec2 a(p.x + 14, e.y - kBottom - 62), b(p.x + kSide - 14, e.y - kBottom - 6);
-            GradH(dl, a, b, A(t.frame, 0.8f), A(t.frame, 0.5f), 12.f);
-            dl->AddRect(a, b, U32(t.border), 12.f);
-            ImVec2 c(a.x + 30, (a.y + b.y) * 0.5f);
-            dl->AddRectFilled(ImVec2(c.x - 18, c.y - 18), ImVec2(c.x + 18, c.y + 18), U32(t.acc1), 9.f);
-            Txt(dl, fb, ImVec2(c.x - TxtSize(fb, "V").x * 0.5f, c.y - fb->FontSize * 0.5f), U32(OnAccent()), "V");
-            dl->AddCircleFilled(ImVec2(c.x + 15, c.y + 15), 5.f, U32(ImVec4(0.2f, 0.9f, 0.5f, 1)), 12);
-            dl->AddCircle(ImVec2(c.x + 15, c.y + 15), 5.f, U32(t.bg_bot), 12, 2.f);
-            Txt(dl, fb, ImVec2(c.x + 28, c.y - fb->FontSize * 0.5f - 8), U32(t.text), "velox");
-            Txt(dl, fs, ImVec2(c.x + 28, c.y - fs->FontSize * 0.5f + 12), U32(t.text_dim), "lifetime");
+            float y = e.y - kBottom - 46;
+            dl->AddLine(ImVec2(p.x + 22, y - 10), ImVec2(p.x + kSide - 22, y - 10), U32(A(t.text, 0.08f)), 1.f);
+            Txt(dl, fb, ImVec2(p.x + 22, y), U32(t.text), "velox");
+            Txt(dl, fs, ImVec2(p.x + 22, y + 24), U32(t.text_dim), "lifetime");
+            dl->AddCircleFilled(ImVec2(p.x + kSide - 28, y + 20), 4.f, U32(ImVec4(0.25f, 0.85f, 0.45f, 1)), 10);
         }
 
         // close
         {
-            ImVec2 cc(e.x - 38, p.y + kHead * 0.5f);
-            ImGui::SetCursorScreenPos(ImVec2(cc.x - 15, cc.y - 15));
-            ImGui::InvisibleButton("##vx_close", ImVec2(30, 30));
+            ImVec2 cc(e.x - 26, p.y + kHead * 0.5f);
+            ImGui::SetCursorScreenPos(ImVec2(cc.x - 14, cc.y - 14));
+            ImGui::InvisibleButton("##vx_close", ImVec2(28, 28));
             float h = Anim(ImGui::GetID("##vx_close"), ImGui::IsItemHovered() ? 1.f : 0.f, 1);
-            GradH(dl, ImVec2(cc.x - 15, cc.y - 15), ImVec2(cc.x + 15, cc.y + 15), A(t.acc1, 0.22f * h), A(t.acc2, 0.22f * h), 8.f);
             ImU32 xc = U32(Mix(t.text_dim, t.text, h));
-            dl->AddLine(ImVec2(cc.x - 5, cc.y - 5), ImVec2(cc.x + 5, cc.y + 5), xc, 2.f);
-            dl->AddLine(ImVec2(cc.x + 5, cc.y - 5), ImVec2(cc.x - 5, cc.y + 5), xc, 2.f);
+            dl->AddLine(ImVec2(cc.x - 5, cc.y - 5), ImVec2(cc.x + 5, cc.y + 5), xc, 1.8f);
+            dl->AddLine(ImVec2(cc.x + 5, cc.y - 5), ImVec2(cc.x - 5, cc.y + 5), xc, 1.8f);
             if (ImGui::IsItemClicked() && g_open) *g_open = false;
         }
 
-        // status
+        // footer of the content area
         {
             ImFont* fs = g_fonts.small;
             char buf[64];
             snprintf(buf, sizeof(buf), "%.0f fps", io.Framerate);
-            Txt(dl, fs, ImVec2(p.x + kSide + kPad, e.y - kBottom + 8), U32(A(t.text_dim, 0.8f)), "velox  -  build 1.0.0");
-            Txt(dl, fs, ImVec2(e.x - kPad - TxtSize(fs, buf).x, e.y - kBottom + 8), U32(A(t.text_dim, 0.8f)), buf);
+            Txt(dl, fs, ImVec2(p.x + kSide + kPad, e.y - kBottom + 7), U32(A(t.text_dim, 0.8f)), "build 1.0.0");
+            Txt(dl, fs, ImVec2(e.x - kPad - TxtSize(fs, buf).x, e.y - kBottom + 7), U32(A(t.text_dim, 0.8f)), buf);
         }
-
-        // thin top edge + border
-        dl->AddRectFilledMultiColor(ImVec2(p.x + 10, p.y), ImVec2(e.x - 10, p.y + 1.5f), U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.9f)), U32(A(t.acc2, 0.9f)), U32(A(t.acc2, 0.0f)));
-        dl->AddRect(p, e, U32(t.border), 10.f);
+        dl->AddRect(p, e, U32(A(t.text, 0.10f)), 4.f);
 
         // drag handles
         ImGui::SetCursorPos(ImVec2(0, 0));
-        ImGui::InvisibleButton("##vx_drag_a", ImVec2(kSide, 80));
+        ImGui::InvisibleButton("##vx_drag_a", ImVec2(kSide, 76));
         bool drag = ImGui::IsItemActive();
         ImGui::SetCursorPos(ImVec2(kSide, 0));
-        ImGui::InvisibleButton("##vx_drag_b", ImVec2(size.x - kSide - 80, kHead));
+        ImGui::InvisibleButton("##vx_drag_b", ImVec2(size.x - kSide - 40, kHead));
         drag = drag || ImGui::IsItemActive();
         if (drag) ImGui::SetWindowPos(ImVec2(p.x + io.MouseDelta.x, p.y + io.MouseDelta.y));
 
-        g_tabY = 112.f;
+        g_tabY = 92.f;
         return true;
     }
 
     void EndWindow()
     {
         ImGui::End();
-        ImGui::PopStyleVar(3);
+        ImGui::PopStyleVar(2);
     }
 
-    bool Tab(const char* label, Icon icon, int idx, int* current)
+    bool Tab(const char* label, int idx, int* current)
     {
         const Theme& t = g_cur;
         ImFont* f = g_fonts.bold;
-        float w = kSide - 28.f, h = 46.f;
+        float w = kSide - 1.f, h = 38.f;
 
-        ImGui::SetCursorPos(ImVec2(14.f, g_tabY));
+        ImGui::SetCursorPos(ImVec2(0.f, g_tabY));
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImGuiID id = ImGui::GetID(label);
         ImGui::InvisibleButton(label, ImVec2(w, h));
         bool clicked = ImGui::IsItemClicked();
-        if (clicked && *current != idx) { *current = idx; g_page = 0.f; }
+        if (clicked && *current != idx) *current = idx;
 
         bool sel = (*current == idx);
-        float a  = Tween(id, sel ? 1.f : 0.f, 1, 0.3f);
+        float a  = Tween(id, sel ? 1.f : 0.f, 1, 0.18f);
         float hv = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 2);
         ImDrawList* dl = ImGui::GetWindowDrawList();
 
@@ -375,45 +247,34 @@ namespace vx
             ImVec2 wp = ImGui::GetWindowPos();
             float ty = p.y - wp.y;
             if (!g_ind_init) { g_ind_y = ty; g_ind_init = true; }
-            g_ind_y += (ty - g_ind_y) * (1.f - expf(-g_dt * 16.f));
+            g_ind_y += (ty - g_ind_y) * (1.f - expf(-g_dt * 18.f));
             ImVec2 a0(p.x, wp.y + g_ind_y), a1(p.x + w, wp.y + g_ind_y + h);
-            dl->AddRectFilled(a0, a1, U32(A(t.acc1, 0.11f)), 6.f);
-            dl->AddRectFilled(ImVec2(a0.x, a0.y + 11), ImVec2(a0.x + 3, a1.y - 11), U32(t.acc1), 2.f);
+            dl->AddRectFilled(a0, a1, U32(A(t.acc1, 0.10f)));
+            dl->AddRectFilled(a0, ImVec2(a0.x + 3, a1.y), U32(t.acc1));
         } else if (hv > 0.01f) {
-            dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.04f * hv)), 6.f);
+            dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.035f * hv)));
         }
-
-        ImVec4 base = Mix(Mix(t.text_dim, t.text, hv * 0.8f), t.text, a);
-        DrawIcon(dl, icon, ImVec2(p.x + 27, p.y + h * 0.5f), 9.f, U32(Mix(base, t.acc1, a)));
-        Txt(dl, f, ImVec2(p.x + 52, p.y + h * 0.5f - f->FontSize * 0.5f), U32(base), label);
+        ImVec4 col = Mix(Mix(t.text_dim, t.text, hv * 0.8f), t.acc1, a);
+        Txt(dl, f, ImVec2(p.x + 22, p.y + h * 0.5f - f->FontSize * 0.5f), U32(col), label);
         if (sel) snprintf(g_title, sizeof(g_title), "%s", label);
-        g_tabY += h + 4.f;
+        g_tabY += h + 2.f;
         return clicked;
     }
 
     void BeginContent()
     {
         const Theme& t = g_cur;
-        float a = EaseOutCubic(g_page);
         ImDrawList* dl = ImGui::GetWindowDrawList();
         ImVec2 p = ImGui::GetWindowPos();
-        ImFont* f = g_fonts.title;
-        float tx = p.x + kSide + kPad + (1.f - a) * 14.f;
-        Txt(dl, f, ImVec2(tx, p.y + 22), U32(A(t.text, a)), g_title);
-        Txt(dl, g_fonts.small, ImVec2(tx + TxtSize(f, g_title).x + 12.f, p.y + 22 + f->FontSize - 24.f), U32(A(t.text_dim, a * 0.8f)), "module");
-        GradH(dl, ImVec2(tx, p.y + kHead - 8.f), ImVec2(tx + 36.f, p.y + kHead - 6.f), A(t.acc1, a), A(t.acc2, a), 1.f);
+        ImFont* f = g_fonts.bold;
+        Txt(dl, f, ImVec2(p.x + kSide + kPad, p.y + kHead * 0.5f - f->FontSize * 0.5f), U32(t.text), g_title);
 
-        ImGui::SetCursorPos(ImVec2(kSide + kPad, kHead + 10.f + (1.f - a) * 16.f));
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, g_base_alpha * a);
-        ImGui::BeginChild("##vx_content", ImVec2(g_wsize.x - kSide - kPad * 2, g_wsize.y - kHead - kBottom - 14.f), 0,
+        ImGui::SetCursorPos(ImVec2(kSide + kPad, kHead + 16.f));
+        ImGui::BeginChild("##vx_content", ImVec2(g_wsize.x - kSide - kPad * 2, g_wsize.y - kHead - kBottom - 20.f), 0,
                           ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 
-    void EndContent()
-    {
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
-    }
+    void EndContent() { ImGui::EndChild(); }
 
     void BeginSubTabs(float width)
     {
@@ -428,33 +289,31 @@ namespace vx
         ImGuiID id = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
         float w = ImGui::GetContentRegionAvail().x;
-        ImGui::InvisibleButton(label, ImVec2(w, 36));
+        ImGui::InvisibleButton(label, ImVec2(w, 32));
         bool clicked = ImGui::IsItemClicked();
         if (clicked) *current = idx;
-        float a = Tween(id, *current == idx ? 1.f : 0.f, 1, 0.25f);
+        float a = Tween(id, *current == idx ? 1.f : 0.f, 1, 0.18f);
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 2);
         ImDrawList* dl = ImGui::GetWindowDrawList();
-        if (a > 0.01f) {
-            GradH(dl, p, ImVec2(p.x + w, p.y + 36), A(t.acc1, 0.20f * a), A(t.acc1, 0.0f), 8.f);
-            GradV(dl, ImVec2(p.x, p.y + 8), ImVec2(p.x + 3, p.y + 28), A(t.acc1, a), A(t.acc2, a), 1.5f);
-        }
+        if (a > 0.01f) dl->AddRectFilled(ImVec2(p.x, p.y + 6), ImVec2(p.x + 3, p.y + 26), U32(A(t.acc1, a)));
         ImVec4 col = Mix(Mix(t.text_dim, t.text, h * 0.8f), t.text, a);
-        Txt(dl, f, ImVec2(p.x + 14 + 5 * a, p.y + 18 - f->FontSize * 0.5f), U32(col), label);
+        Txt(dl, f, ImVec2(p.x + 14, p.y + 16 - f->FontSize * 0.5f), U32(col), label);
         return clicked;
     }
 
     void EndSubTabs()
     {
         ImGui::EndChild();
-        ImGui::SameLine(0, 16);
+        ImGui::SameLine(0, 14);
     }
 
     // ------------------------------------------------------------------ group
+    // outlined box, title sits on the border line
     bool BeginGroup(const char* title, ImVec2 size)
     {
         const Theme& t = g_cur;
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 16));
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 26));
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
         bool vis = ImGui::BeginChild(title, size, ImGuiChildFlags_AlwaysUseWindowPadding,
                                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -463,18 +322,13 @@ namespace vx
 
         ImDrawList* dl = ImGui::GetWindowDrawList();
         ImVec2 p = ImGui::GetWindowPos(), sz = ImGui::GetWindowSize(), e(p.x + sz.x, p.y + sz.y);
-        dl->AddRectFilled(p, e, U32(A(t.panel_top, 0.90f)), 8.f);
-        dl->AddRectFilled(p, ImVec2(e.x, p.y + 46), U32(ImVec4(1, 1, 1, 0.025f)), 8.f, ImDrawFlags_RoundCornersTop);
-        dl->AddRect(p, e, U32(t.border), 8.f);
-        dl->AddLine(ImVec2(p.x + 1, p.y + 46), ImVec2(e.x - 1, p.y + 46), U32(t.border), 1.f);
-
         ImFont* f = g_fonts.bold;
-        GradV(dl, ImVec2(p.x + 14, p.y + 15), ImVec2(p.x + 17.5f, p.y + 31), t.acc1, t.acc2, 1.5f);
-        Txt(dl, f, ImVec2(p.x + 27, p.y + 23 - f->FontSize * 0.5f), U32(t.text), title);
-        for (int i = 0; i < 3; ++i)
-            dl->AddCircleFilled(ImVec2(e.x - 22 - i * 9, p.y + 23), 2.f, U32(A(Grad(i / 2.f), 0.55f)), 8);
+        ImVec2 ts = TxtSize(f, title);
+        dl->AddRect(ImVec2(p.x, p.y + 11), ImVec2(e.x, e.y), U32(A(t.text, 0.12f)), 3.f);
+        dl->AddRectFilled(ImVec2(p.x + 12, p.y), ImVec2(p.x + 12 + ts.x + 14, p.y + 22), U32(t.bg_top));
+        Txt(dl, f, ImVec2(p.x + 19, p.y + 11 - f->FontSize * 0.5f), U32(t.text), title);
 
-        ImGui::SetCursorPos(ImVec2(20, 58));
+        ImGui::SetCursorPos(ImVec2(16, 28));
         return vis;
     }
 
@@ -486,14 +340,12 @@ namespace vx
     {
         ImVec2 p = ImGui::GetCursorScreenPos();
         float w = ImGui::GetContentRegionAvail().x;
-        ImGui::GetWindowDrawList()->AddRectFilledMultiColor(ImVec2(p.x, p.y + 3), ImVec2(p.x + w, p.y + 4),
-            U32(A(g_cur.acc1, 0.5f)), U32(A(g_cur.acc2, 0.0f)), U32(A(g_cur.acc2, 0.0f)), U32(A(g_cur.acc1, 0.5f)));
-        ImGui::Dummy(ImVec2(w, 8));
+        ImGui::GetWindowDrawList()->AddLine(ImVec2(p.x, p.y + 4), ImVec2(p.x + w, p.y + 4), U32(A(g_cur.text, 0.10f)), 1.f);
+        ImGui::Dummy(ImVec2(w, 9));
     }
 
     // ---------------------------------------------------------------- widgets
     static float RowW() { return ImGui::GetContentRegionAvail().x; }
-
     static ImVec4 LabelCol(float k) { return Mix(g_cur.text_dim, g_cur.text, 0.55f + 0.45f * k); }
 
     bool Checkbox(const char* label, bool* v)
@@ -507,27 +359,25 @@ namespace vx
         bool changed = false;
         if (ImGui::IsItemClicked()) { *v = !*v; changed = true; }
 
-        float a = Tween(id, *v ? 1.f : 0.f, 1, 0.26f);
+        float a = Tween(id, *v ? 1.f : 0.f, 1, 0.16f);
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 2);
         ImDrawList* dl = ImGui::GetWindowDrawList();
 
-        ImVec2 b0(p.x, p.y + (kRow - 24.f) * 0.5f), b1(b0.x + 24.f, b0.y + 24.f);
-        GradH(dl, b0, b1, t.frame, t.frame, 7.f);
-        dl->AddRect(b0, b1, U32(Mix(t.border, Grad(0.f), h * 0.8f)), 7.f);
+        ImVec2 b0(p.x, p.y + (kRow - 22.f) * 0.5f), b1(b0.x + 22.f, b0.y + 22.f);
+        dl->AddRectFilled(b0, b1, U32(Mix(t.frame, t.acc1, a)), 4.f);
+        dl->AddRect(b0, b1, U32(Mix(A(t.text, 0.12f + 0.12f * h), t.acc1, a)), 4.f);
         if (a > 0.01f) {
-            Glow(dl, b0, b1, t.acc1, 7.f, a * 0.55f);
-            GradH(dl, b0, b1, A(t.acc1, a), A(t.acc2, a), 7.f);
-            float s = a * 17.f;
-            ImVec2 c0(b0.x + 6.f, b0.y + 12.5f), c1(b0.x + 10.5f, b0.y + 17.f), c2(b0.x + 18.f, b0.y + 7.f);
-            ImU32 ck = U32(A(OnAccent(), a));
-            float f1 = (s < 6.4f ? s : 6.4f) / 6.4f;
-            dl->AddLine(c0, ImVec2(c0.x + (c1.x - c0.x) * f1, c0.y + (c1.y - c0.y) * f1), ck, 2.6f);
-            if (s > 6.4f) {
-                float f2 = Clamp01((s - 6.4f) / 10.6f);
-                dl->AddLine(c1, ImVec2(c1.x + (c2.x - c1.x) * f2, c1.y + (c2.y - c1.y) * f2), ck, 2.6f);
+            float s = a * 15.f;
+            ImVec2 c0(b0.x + 5.5f, b0.y + 11.5f), c1(b0.x + 9.5f, b0.y + 15.5f), c2(b0.x + 16.5f, b0.y + 6.5f);
+            ImU32 ck = U32(OnAccent());
+            float f1 = (s < 5.7f ? s : 5.7f) / 5.7f;
+            dl->AddLine(c0, ImVec2(c0.x + (c1.x - c0.x) * f1, c0.y + (c1.y - c0.y) * f1), ck, 2.4f);
+            if (s > 5.7f) {
+                float f2 = Clamp01((s - 5.7f) / 9.3f);
+                dl->AddLine(c1, ImVec2(c1.x + (c2.x - c1.x) * f2, c1.y + (c2.y - c1.y) * f2), ck, 2.4f);
             }
         }
-        Txt(dl, f, ImVec2(p.x + 38.f, p.y + kRow * 0.5f - f->FontSize * 0.5f), U32(LabelCol(a > h ? a : h)), label);
+        Txt(dl, f, ImVec2(p.x + 34.f, p.y + kRow * 0.5f - f->FontSize * 0.5f), U32(LabelCol(a > h ? a : h)), label);
         return changed;
     }
 
@@ -548,30 +398,27 @@ namespace vx
             if (isInt) nv = roundf(nv);
             if (nv != *v) { *v = nv; changed = true; }
         }
-        float f01 = Anim(id, Clamp01((*v - lo) / (hi - lo)), 1, 18.f);
+        float f01 = Anim(id, Clamp01((*v - lo) / (hi - lo)), 1, 20.f);
         float h   = Anim(id, (ImGui::IsItemHovered() || ImGui::IsItemActive()) ? 1.f : 0.f, 2);
-        float act = Anim(id, ImGui::IsItemActive() ? 1.f : 0.f, 3, 20.f);
+        float act = Anim(id, ImGui::IsItemActive() ? 1.f : 0.f, 3, 22.f);
 
         ImDrawList* dl = ImGui::GetWindowDrawList();
         Txt(dl, f, ImVec2(p.x, p.y + 4), U32(LabelCol(h)), label);
         ImFont* fb = g_fonts.bold;
-        Txt(dl, fb, ImVec2(p.x + w - TxtSize(fb, val).x, p.y + 4), U32(Mix(t.text, Grad(f01), 0.7f + 0.3f * act)), val);
+        Txt(dl, fb, ImVec2(p.x + w - TxtSize(fb, val).x, p.y + 4), U32(Mix(t.text, t.acc1, 0.7f + 0.3f * act)), val);
 
         for (int i = 0; i <= 10; ++i) {
             float x = bx0 + (bx1 - bx0) * i / 10.f;
             dl->AddLine(ImVec2(x, by + 8), ImVec2(x, by + (i % 5 == 0 ? 13.f : 11.f)), U32(A(t.text_dim, i / 10.f <= f01 ? 0.55f : 0.22f)), 1.f);
         }
-        GradH(dl, ImVec2(bx0, by - 2.5f), ImVec2(bx1, by + 2.5f), t.frame, t.frame, 2.5f);
+        dl->AddRectFilled(ImVec2(bx0, by - 2.5f), ImVec2(bx1, by + 2.5f), U32(t.frame), 2.5f);
         float fx = bx0 + (bx1 - bx0) * f01;
-        if (fx - bx0 > 1.f) {
-            Glow(dl, ImVec2(bx0, by - 2.5f), ImVec2(fx, by + 2.5f), t.acc1, 2.5f, 0.35f + 0.5f * h);
-            GradH(dl, ImVec2(bx0, by - 2.5f), ImVec2(fx, by + 2.5f), t.acc1, Grad(f01), 2.5f);
-        }
+        if (fx - bx0 > 1.f) dl->AddRectFilled(ImVec2(bx0, by - 2.5f), ImVec2(fx, by + 2.5f), U32(t.acc1), 2.5f);
         float s = 9.f * (1.f + 0.12f * h + 0.22f * act);
         ImVec2 q[4] = { ImVec2(fx, by - s), ImVec2(fx + s, by), ImVec2(fx, by + s), ImVec2(fx - s, by) };
-        dl->AddCircle(ImVec2(fx, by), s + 7.f * act, U32(A(Grad(f01), 0.28f * act)), 4, 2.f);
+        dl->AddCircle(ImVec2(fx, by), s + 7.f * act, U32(A(t.acc1, 0.28f * act)), 4, 2.f);
         dl->AddConvexPolyFilled(q, 4, U32(t.text));
-        dl->AddPolyline(q, 4, U32(Grad(f01)), ImDrawFlags_Closed, 2.f);
+        dl->AddPolyline(q, 4, U32(t.acc1), ImDrawFlags_Closed, 2.f);
         return changed;
     }
 
@@ -592,26 +439,24 @@ namespace vx
     static void Field(ImDrawList* dl, ImVec2 a, ImVec2 b, float hover, float open)
     {
         const Theme& t = g_cur;
-        GradH(dl, a, b, Mix(t.frame, t.acc1, 0.10f * hover + 0.08f * open), Mix(t.frame, t.acc2, 0.10f * hover + 0.08f * open), 8.f);
-        dl->AddRect(a, b, U32(Mix(t.border, t.acc1, open * 0.9f)), 8.f);
+        dl->AddRectFilled(a, b, U32(Mix(t.frame, t.acc1, 0.08f * hover)), 3.f);
+        dl->AddRect(a, b, U32(Mix(A(t.text, 0.12f + 0.10f * hover), t.acc1, open)), 3.f);
     }
 
     template <class Fn>
     static bool DropdownPopup(const char* label, ImVec2 b0, float bw, int count, Fn rows)
     {
-        const Theme& t = g_cur;
         ImGuiID pid = ImGui::GetID(label);
         bool opened = ImGui::IsPopupOpen(label);
-        float o = EaseOutCubic(Tween(pid, opened ? 1.f : 0.f, 9, 0.18f));
-        ImGui::SetNextWindowPos(ImVec2(b0.x, b0.y + 4.f - (1.f - o) * 8.f));
-        ImGui::SetNextWindowSize(ImVec2(bw, count * 32.f + 10.f));
+        float o = EaseOutCubic(Tween(pid, opened ? 1.f : 0.f, 9, 0.12f));
+        ImGui::SetNextWindowPos(ImVec2(b0.x, b0.y + 3.f));
+        ImGui::SetNextWindowSize(ImVec2(bw, count * 30.f + 8.f));
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, g_base_alpha * o);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 10.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 3.f);
         bool changed = false;
         if (ImGui::BeginPopup(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
-            Glow(ImGui::GetWindowDrawList(), ImGui::GetWindowPos(), ImVec2(ImGui::GetWindowPos().x + bw, ImGui::GetWindowPos().y + count * 32.f + 10.f), t.acc1, 10.f, 0.3f);
             changed = rows();
             ImGui::EndPopup();
         }
@@ -625,19 +470,18 @@ namespace vx
         ImFont* f = g_fonts.body;
         ImGuiID id = ImGui::GetID(text);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        ImGui::InvisibleButton(text, ImVec2(w, 32));
+        ImGui::InvisibleButton(text, ImVec2(w, 30));
         bool clicked = ImGui::IsItemClicked();
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 1);
-        float s = Tween(id, selected ? 1.f : 0.f, 2, 0.2f);
+        float s = Tween(id, selected ? 1.f : 0.f, 2, 0.12f);
         ImDrawList* dl = ImGui::GetWindowDrawList();
-        GradH(dl, p, ImVec2(p.x + w, p.y + 32), A(t.acc1, 0.14f * h + 0.08f * s), A(t.acc2, 0.14f * h + 0.08f * s), 7.f);
-        if (s > 0.01f) GradV(dl, ImVec2(p.x + 2, p.y + 8), ImVec2(p.x + 5, p.y + 24), A(t.acc1, s), A(t.acc2, s), 1.5f);
-        ImVec4 col = Mix(Mix(t.text_dim, t.text, 0.5f + 0.5f * h), Grad(0.f), s);
-        Txt(dl, f, ImVec2(p.x + 14 + 3 * h, p.y + 16 - f->FontSize * 0.5f), U32(col), text);
+        dl->AddRectFilled(p, ImVec2(p.x + w, p.y + 30), U32(A(t.acc1, 0.12f * h + 0.06f * s)), 2.f);
+        ImVec4 col = Mix(Mix(t.text_dim, t.text, 0.5f + 0.5f * h), t.acc1, s);
+        Txt(dl, f, ImVec2(p.x + 12, p.y + 15 - f->FontSize * 0.5f), U32(col), text);
         if (checkStyle && s > 0.01f) {
-            ImVec2 c(p.x + w - 16, p.y + 16);
-            dl->AddLine(ImVec2(c.x - 4, c.y), ImVec2(c.x - 1, c.y + 3), U32(A(Grad(0.f), s)), 2.f);
-            dl->AddLine(ImVec2(c.x - 1, c.y + 3), ImVec2(c.x + 5, c.y - 4), U32(A(Grad(0.f), s)), 2.f);
+            ImVec2 c(p.x + w - 16, p.y + 15);
+            dl->AddLine(ImVec2(c.x - 4, c.y), ImVec2(c.x - 1, c.y + 3), U32(A(t.acc1, s)), 2.f);
+            dl->AddLine(ImVec2(c.x - 1, c.y + 3), ImVec2(c.x + 5, c.y - 4), U32(A(t.acc1, s)), 2.f);
         }
         return clicked;
     }
@@ -645,8 +489,8 @@ namespace vx
     static void DrawChevron(ImDrawList* dl, ImVec2 c, float open, ImU32 col)
     {
         float d = 3.5f * (1.f - 2.f * open);
-        dl->AddLine(ImVec2(c.x - 4.5f, c.y - d * 0.5f), ImVec2(c.x, c.y + d * 0.5f), col, 2.f);
-        dl->AddLine(ImVec2(c.x, c.y + d * 0.5f), ImVec2(c.x + 4.5f, c.y - d * 0.5f), col, 2.f);
+        dl->AddLine(ImVec2(c.x - 4.5f, c.y - d * 0.5f), ImVec2(c.x, c.y + d * 0.5f), col, 1.8f);
+        dl->AddLine(ImVec2(c.x, c.y + d * 0.5f), ImVec2(c.x + 4.5f, c.y - d * 0.5f), col, 1.8f);
     }
 
     bool Combo(const char* label, int* cur, const char* const* items, int count)
@@ -655,7 +499,7 @@ namespace vx
         ImFont* f = g_fonts.body;
         ImGuiID id = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        float w = RowW(), bw = 168.f;
+        float w = RowW(), bw = 160.f;
         ImGui::InvisibleButton(label, ImVec2(w, kRow));
         if (ImGui::IsItemClicked()) ImGui::OpenPopup(label);
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 1);
@@ -668,12 +512,12 @@ namespace vx
         dl->PushClipRect(b0, ImVec2(b1.x - 28, b1.y), true);
         Txt(dl, f, ImVec2(b0.x + 12, (b0.y + b1.y) * 0.5f - f->FontSize * 0.5f), U32(t.text), items[*cur]);
         dl->PopClipRect();
-        DrawChevron(dl, ImVec2(b1.x - 16, (b0.y + b1.y) * 0.5f), o, U32(Mix(t.text_dim, Grad(0.f), o)));
+        DrawChevron(dl, ImVec2(b1.x - 16, (b0.y + b1.y) * 0.5f), o, U32(Mix(t.text_dim, t.acc1, o)));
 
         return DropdownPopup(label, ImVec2(b0.x, b1.y), bw, count, [&]() {
             bool ch = false;
             for (int i = 0; i < count; ++i)
-                if (DropRow(items[i], i == *cur, bw - 10, false)) { *cur = i; ch = true; ImGui::CloseCurrentPopup(); }
+                if (DropRow(items[i], i == *cur, bw - 8, false)) { *cur = i; ch = true; ImGui::CloseCurrentPopup(); }
             return ch;
         });
     }
@@ -684,7 +528,7 @@ namespace vx
         ImFont* f = g_fonts.body;
         ImGuiID id = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        float w = RowW(), bw = 168.f;
+        float w = RowW(), bw = 160.f;
         ImGui::InvisibleButton(label, ImVec2(w, kRow));
         if (ImGui::IsItemClicked()) ImGui::OpenPopup(label);
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 1);
@@ -706,12 +550,12 @@ namespace vx
         dl->PushClipRect(b0, ImVec2(b1.x - 28, b1.y), true);
         Txt(dl, f, ImVec2(b0.x + 12, (b0.y + b1.y) * 0.5f - f->FontSize * 0.5f), U32(t.text), sum);
         dl->PopClipRect();
-        DrawChevron(dl, ImVec2(b1.x - 16, (b0.y + b1.y) * 0.5f), o, U32(Mix(t.text_dim, Grad(0.f), o)));
+        DrawChevron(dl, ImVec2(b1.x - 16, (b0.y + b1.y) * 0.5f), o, U32(Mix(t.text_dim, t.acc1, o)));
 
         return DropdownPopup(label, ImVec2(b0.x, b1.y), bw, count, [&]() {
             bool ch = false;
             for (int i = 0; i < count; ++i)
-                if (DropRow(items[i], states[i], bw - 10, true)) { states[i] = !states[i]; ch = true; }
+                if (DropRow(items[i], states[i], bw - 8, true)) { states[i] = !states[i]; ch = true; }
             return ch;
         });
     }
@@ -723,33 +567,18 @@ namespace vx
         ImGuiID id = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
         if (size.x <= 0.f) size.x = RowW();
-        if (size.y <= 0.f) size.y = 40.f;
+        if (size.y <= 0.f) size.y = 38.f;
         ImGui::InvisibleButton(label, size);
         bool clicked = ImGui::IsItemClicked();
-        ImGuiStorage* st = ImGui::GetStateStorage();
-        if (clicked) {
-            ImVec2 m = ImGui::GetIO().MousePos;
-            st->SetFloat(id + 5, g_time); st->SetFloat(id + 6, m.x - p.x); st->SetFloat(id + 7, m.y - p.y);
-        }
         float h = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 1);
         float d = Anim(id, ImGui::IsItemActive() ? 1.f : 0.f, 2, 24.f);
 
         ImDrawList* dl = ImGui::GetWindowDrawList();
         ImVec2 e(p.x + size.x, p.y + size.y);
-        GradH(dl, p, e, t.frame, t.frame, 7.f);
-        if (h > 0.01f) Glow(dl, p, e, t.acc1, 7.f, h * 0.7f);
-        GradH(dl, p, e, A(t.acc1, 0.06f + 0.94f * h - 0.12f * d), A(t.acc2, 0.06f + 0.94f * h - 0.12f * d), 7.f);
-        dl->AddRect(p, e, U32(A(Grad(0.5f), 0.75f)), 7.f, 0, 1.5f);
-
-        float rt = (g_time - st->GetFloat(id + 5, -10.f)) / 0.65f;
-        if (rt >= 0.f && rt < 1.f) {
-            dl->PushClipRect(p, e, true);
-            ImVec2 c(p.x + st->GetFloat(id + 6, 0.f), p.y + st->GetFloat(id + 7, 0.f));
-            dl->AddCircleFilled(c, EaseOutCubic(rt) * size.x * 0.9f, U32(ImVec4(1, 1, 1, 0.26f * (1.f - rt))), 48);
-            dl->PopClipRect();
-        }
+        dl->AddRectFilled(p, e, U32(Mix(t.frame, t.acc1, h * 0.9f - 0.15f * d)), 3.f);
+        dl->AddRect(p, e, U32(Mix(A(t.text, 0.14f), t.acc1, 0.6f + 0.4f * h)), 3.f);
         ImVec2 ts = TxtSize(f, label);
-        Txt(dl, f, ImVec2(p.x + (size.x - ts.x) * 0.5f, p.y + (size.y - ts.y) * 0.5f + d), U32(Mix(t.text, OnAccent(), h)), label);
+        Txt(dl, f, ImVec2(p.x + (size.x - ts.x) * 0.5f, p.y + (size.y - ts.y) * 0.5f), U32(Mix(t.text, OnAccent(), h)), label);
         return clicked;
     }
 
@@ -766,14 +595,12 @@ namespace vx
 
         ImDrawList* dl = ImGui::GetWindowDrawList();
         Txt(dl, f, ImVec2(p.x, p.y + kRow * 0.5f - f->FontSize * 0.5f), U32(LabelCol(h)), label);
-        ImVec2 s0(p.x + w - 52, p.y + (kRow - 24) * 0.5f), s1(s0.x + 52, s0.y + 24);
-        ImVec4 c(col[0], col[1], col[2], 1.f);
-        Glow(dl, s0, s1, c, 8.f, 0.4f * h);
-        dl->AddRectFilled(s0, s1, ImGui::ColorConvertFloat4ToU32(c), 8.f);
-        dl->AddRect(s0, s1, U32(Mix(t.border, ImVec4(1, 1, 1, 0.6f), h)), 8.f);
+        ImVec2 s0(p.x + w - 46, p.y + (kRow - 22) * 0.5f), s1(s0.x + 46, s0.y + 22);
+        dl->AddRectFilled(s0, s1, ImGui::ColorConvertFloat4ToU32(ImVec4(col[0], col[1], col[2], 1.f)), 3.f);
+        dl->AddRect(s0, s1, U32(Mix(A(t.text, 0.14f), t.text, h)), 3.f);
 
         bool changed = false;
-        ImGui::SetNextWindowPos(ImVec2(s1.x - 230, s1.y + 6));
+        ImGui::SetNextWindowPos(ImVec2(s1.x - 230, s1.y + 5));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 12));
         if (ImGui::BeginPopup(label)) {
             changed = ImGui::ColorPicker4("##vx_pick", col,
@@ -790,7 +617,7 @@ namespace vx
         ImFont* f = g_fonts.body;
         ImGuiID id = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        float w = RowW(), bw = 100.f;
+        float w = RowW(), bw = 96.f;
         ImGui::InvisibleButton(label, ImVec2(w, kRow));
         ImGuiStorage* st = ImGui::GetStateStorage();
         bool waiting = st->GetInt(id + 3, 0) != 0, changed = false;
@@ -821,7 +648,7 @@ namespace vx
         if (waiting) snprintf(buf, sizeof(buf), "%s", (int)(g_time * 3) % 2 ? "..." : " . ");
         else snprintf(buf, sizeof(buf), "%s", *key == ImGuiKey_None ? "none" : ImGui::GetKeyName(*key));
         ImVec2 ts = TxtSize(f, buf);
-        Txt(dl, f, ImVec2(b0.x + (bw - ts.x) * 0.5f, (b0.y + b1.y) * 0.5f - f->FontSize * 0.5f), U32(waiting ? Grad(0.f) : t.text), buf);
+        Txt(dl, f, ImVec2(b0.x + (bw - ts.x) * 0.5f, (b0.y + b1.y) * 0.5f - f->FontSize * 0.5f), U32(waiting ? t.acc1 : t.text), buf);
         return changed;
     }
 
@@ -842,37 +669,27 @@ namespace vx
         ImDrawList* dl = ImGui::GetForegroundDrawList();
         const Theme& t = g_cur;
         ImFont* f = g_fonts.body;
-        float y = io.DisplaySize.y - 24.f;
+        float y = io.DisplaySize.y - 20.f;
         for (size_t i = 0; i < g_toasts.size();) {
             Toast& n = g_toasts[i];
             n.age += dt;
-            if (n.age >= n.life + 0.4f) { g_toasts.erase(g_toasts.begin() + i); continue; }
+            if (n.age >= n.life + 0.25f) { g_toasts.erase(g_toasts.begin() + i); continue; }
 
-            float in = EaseOutBack(Clamp01(n.age / 0.45f));
-            float out = n.age > n.life ? EaseOutCubic((n.age - n.life) / 0.4f) : 0.f;
-            float W = 340.f, H = 62.f;
-            float x = io.DisplaySize.x - 24.f - W + (1.f - in) * (W + 40.f) + out * (W + 40.f);
+            float in = EaseOutCubic(Clamp01(n.age / 0.22f));
+            float out = n.age > n.life ? EaseOutCubic((n.age - n.life) / 0.25f) : 0.f;
+            float W = 300.f, H = 48.f;
+            float x = io.DisplaySize.x - 20.f - W + (1.f - in) * (W + 30.f) + out * (W + 30.f);
             y -= H;
             ImVec2 a(x, y), b(x + W, y + H);
-            ImVec4 kc = n.kind == 1 ? ImVec4(0.20f, 0.92f, 0.55f, 1) : (n.kind == 2 ? ImVec4(1.f, 0.72f, 0.20f, 1) : t.acc1);
+            ImVec4 kc = n.kind == 1 ? ImVec4(0.25f, 0.85f, 0.45f, 1) : (n.kind == 2 ? ImVec4(1.f, 0.70f, 0.20f, 1) : t.acc1);
 
-            Glow(dl, a, b, kc, 12.f, 0.5f);
-            GradV(dl, a, b, A(t.panel_top, 0.97f), A(t.panel_bot, 0.97f), 12.f);
-            dl->AddRect(a, b, U32(A(kc, 0.35f)), 12.f);
-            ImVec2 c(a.x + 32, a.y + H * 0.5f - 1);
-            dl->AddCircleFilled(c, 14.f, U32(A(kc, 0.18f)), 24);
-            dl->AddCircle(c, 14.f, U32(A(kc, 0.8f)), 24, 1.8f);
-            if (n.kind == 1) {
-                dl->AddLine(ImVec2(c.x - 5, c.y), ImVec2(c.x - 1, c.y + 4), U32(kc), 2.2f);
-                dl->AddLine(ImVec2(c.x - 1, c.y + 4), ImVec2(c.x + 6, c.y - 4), U32(kc), 2.2f);
-            } else {
-                dl->AddLine(ImVec2(c.x, c.y - 6), ImVec2(c.x, c.y + 1), U32(kc), 2.2f);
-                dl->AddCircleFilled(ImVec2(c.x, c.y + 6), 1.8f, U32(kc), 8);
-            }
-            Txt(dl, f, ImVec2(a.x + 58, a.y + H * 0.5f - f->FontSize * 0.5f - 2), U32(t.text), n.text.c_str());
+            dl->AddRectFilled(a, b, U32(A(t.panel_top, 0.98f)), 3.f);
+            dl->AddRect(a, b, U32(A(t.text, 0.12f)), 3.f);
+            dl->AddRectFilled(a, ImVec2(a.x + 3, b.y), U32(kc), 3.f, ImDrawFlags_RoundCornersLeft);
+            Txt(dl, f, ImVec2(a.x + 18, a.y + H * 0.5f - f->FontSize * 0.5f - 1), U32(t.text), n.text.c_str());
             float k = Clamp01(1.f - n.age / n.life);
-            GradH(dl, ImVec2(a.x + 14, b.y - 6), ImVec2(a.x + 14 + (W - 28) * k, b.y - 3), t.acc1, t.acc2, 1.5f);
-            y -= 10.f;
+            dl->AddRectFilled(ImVec2(a.x + 3, b.y - 2), ImVec2(a.x + 3 + (W - 3) * k, b.y), U32(A(kc, 0.8f)));
+            y -= 8.f;
             ++i;
         }
     }
