@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(nx_imgui CXX)
+project(velox_imgui CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
@@ -18,12 +18,12 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC glfw)
 
-add_library(nx STATIC nx/nx.cpp)
-target_include_directories(nx PUBLIC nx)
-target_link_libraries(nx PUBLIC imgui)
+add_library(vx STATIC vx/vx.cpp)
+target_include_directories(vx PUBLIC vx)
+target_link_libraries(vx PUBLIC imgui)
 
-add_executable(nx_demo demo/main.cpp)
-target_link_libraries(nx_demo PRIVATE nx)
+add_executable(velox_demo demo/main.cpp)
+target_link_libraries(velox_demo PRIVATE vx)
 if(UNIX AND NOT APPLE)
-    target_link_libraries(nx_demo PRIVATE GL)
+    target_link_libraries(velox_demo PRIVATE GL)
 endif()

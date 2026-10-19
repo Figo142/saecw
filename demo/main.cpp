@@ -1,7 +1,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "nx.h"
+#include "vx.h"
 #include <GLFW/glfw3.h>
 
 int main()
@@ -12,7 +12,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    GLFWwindow* win = glfwCreateWindow(1000, 680, "nx", nullptr, nullptr);
+    GLFWwindow* win = glfwCreateWindow(1280, 800, "velox", nullptr, nullptr);
     if (!win) return 1;
     glfwMakeContextCurrent(win);
     glfwSwapInterval(1);
@@ -20,17 +20,19 @@ int main()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::GetIO().IniFilename = nullptr;
-    nx::ApplyStyle();
+    vx::Init();
     ImGui_ImplGlfw_InitForOpenGL(win, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    int tab = 0, aimMode = 0, fov = 90;
-    bool enabled = true, visible = false, glow = true, multi[3] = { true, false, true };
-    float smooth = 35.f, range = 120.f, col[4] = { 0.06f, 0.61f, 1.f, 1.f };
+    int tab = 0, sub = 0, preset = 0, target = 0, fov = 90, hitchance = 70;
+    bool aimbot = true, silent = false, autofire = true, autostop = true, visibleOnly = false;
+    bool glow = true, boxes = true, flagsOn[4] = { true, true, false, true }, antiaim = false;
+    float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 1.f, 0.18f, 0.45f, 1.f };
     ImGuiKey bind = ImGuiKey_V;
     bool open = true;
-    const char* modes[] = { "Closest", "Head", "Chest", "Legit" };
-    const char* flags[] = { "Name", "Health", "Distance" };
+    const char* targets[]  = { "Closest", "Head", "Chest", "Legit" };
+    const char* flagsN[]   = { "Name", "Health", "Distance", "Weapon" };
+    const char* presets[]  = { "Velox", "Fatality", "Neverlose", "Emerald" };
 
     while (!glfwWindowShouldClose(win) && open) {
         glfwPollEvents();
@@ -38,47 +40,73 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowPos(ImVec2(80, 60), ImGuiCond_FirstUseEver);
-        if (nx::BeginWindow("NEXUS", "dev build", ImVec2(840, 560), &open)) {
-            nx::SidebarLabel("COMBAT");
-            nx::SidebarTab("Aimbot", 0, &tab);
-            nx::SidebarTab("Visuals", 1, &tab);
-            nx::SidebarLabel("MISC");
-            nx::SidebarTab("Settings", 2, &tab);
+        ImGui::SetNextWindowPos(ImVec2(60, 40), ImGuiCond_FirstUseEver);
+        if (vx::BeginWindow("VELOX", ImVec2(1200, 720), &open)) {
+            vx::TopTab("RAGE",    vx::Icon::Crosshair, 0, &tab);
+            vx::TopTab("LEGIT",   vx::Icon::Cursor,    1, &tab);
+            vx::TopTab("VISUALS", vx::Icon::Eye,       2, &tab);
+            vx::TopTab("MISC",    vx::Icon::Cog,       3, &tab);
+            vx::TopTab("SKINS",   vx::Icon::Diamond,   4, &tab);
+            vx::TopTab("CFG",     vx::Icon::Folder,    5, &tab);
 
-            nx::BeginContent();
+            vx::BeginContent();
             if (tab == 0) {
-                if (nx::BeginGroup("Aimbot", ImVec2(380, 300))) {
-                    nx::Checkbox("Enabled", &enabled);
-                    nx::Combo("Target", &aimMode, modes, 4);
-                    nx::SliderInt("Field of view", &fov, 1, 180, "%d deg");
-                    nx::SliderFloat("Smoothing", &smooth, 0.f, 100.f, "%.0f%%");
-                    nx::Keybind("Hold key", &bind);
-                    nx::EndGroup();
+                vx::BeginSubTabs(150);
+                vx::SubTab("General", 0, &sub); vx::SubTab("Pistols", 1, &sub);
+                vx::SubTab("Rifles", 2, &sub);  vx::SubTab("Snipers", 3, &sub);
+                vx::EndSubTabs();
+
+                float colw = (ImGui::GetContentRegionAvail().x - 24.f) / 2.f;
+                if (vx::BeginGroup("Aimbot", ImVec2(colw, 0))) {
+                    vx::Checkbox("Enabled", &aimbot);
+                    vx::Checkbox("Silent aim", &silent);
+                    vx::Combo("Target", &target, targets, 4);
+                    vx::SliderInt("Field of view", &fov, 1, 180, "%d deg");
+                    vx::SliderInt("Hit chance", &hitchance, 0, 100, "%d%%");
+                    vx::SliderFloat("Smoothing", &smooth, 0.f, 100.f, "%.0f%%");
+                    vx::Keybind("Hold key", &bind);
+                    vx::EndGroup();
                 }
                 ImGui::SameLine(0, 12);
-                if (nx::BeginGroup("Extra", ImVec2(0, 300))) {
-                    nx::Checkbox("Visible only", &visible);
-                    nx::SliderFloat("Range", &range, 10.f, 500.f, "%.0fm");
-                    nx::Button("Reset");
-                    nx::EndGroup();
+                if (vx::BeginGroup("Extra", ImVec2(0, 0))) {
+                    vx::Checkbox("Autofire", &autofire);
+                    vx::Checkbox("Autostop", &autostop);
+                    vx::Checkbox("Visible only", &visibleOnly);
+                    vx::SliderFloat("Pointscale", &pointscale, 0.f, 100.f, "%.0f%%");
+                    vx::SliderFloat("Range", &range, 10.f, 500.f, "%.0fm");
+                    vx::Spacing(4);
+                    if (vx::Button("Reset values")) vx::Notify("Values reset", 2);
+                    vx::EndGroup();
                 }
-            } else if (tab == 1) {
-                if (nx::BeginGroup("ESP", ImVec2(380, 300))) {
-                    nx::Checkbox("Glow", &glow);
-                    nx::MultiCombo("Flags", multi, flags, 3);
-                    nx::ColorEdit("Accent", col);
-                    nx::EndGroup();
+            } else if (tab == 2) {
+                float colw = (ImGui::GetContentRegionAvail().x - 12.f) / 2.f;
+                if (vx::BeginGroup("ESP", ImVec2(colw, 0))) {
+                    vx::Checkbox("Boxes", &boxes);
+                    vx::Checkbox("Glow", &glow);
+                    vx::MultiCombo("Flags", flagsOn, flagsN, 4);
+                    vx::ColorEdit("Enemy color", col);
+                    vx::EndGroup();
                 }
-            } else {
-                if (nx::BeginGroup("Theme", ImVec2(380, 200))) {
-                    if (nx::ColorEdit("Accent color", col)) nx::SetAccent(ImVec4(col[0], col[1], col[2], 1.f));
-                    nx::EndGroup();
+                ImGui::SameLine(0, 12);
+                if (vx::BeginGroup("World", ImVec2(0, 0))) {
+                    vx::Checkbox("Anti aim preview", &antiaim);
+                    vx::SliderFloat("Range", &range, 10.f, 500.f, "%.0fm");
+                    vx::EndGroup();
+                }
+            } else if (tab == 5) {
+                float colw = (ImGui::GetContentRegionAvail().x - 12.f) / 2.f;
+                if (vx::BeginGroup("Theme", ImVec2(colw, 0))) {
+                    if (vx::Combo("Preset", &preset, presets, 4)) vx::SetPreset(preset);
+                    if (vx::Button("Save config")) vx::Notify("Config saved", 1);
+                    vx::Spacing(2);
+                    if (vx::Button("Load config")) vx::Notify("Config loaded", 0);
+                    vx::EndGroup();
                 }
             }
-            nx::EndContent();
+            vx::EndContent();
         }
-        nx::EndWindow();
+        vx::EndWindow();
+        vx::RenderNotifications();
 
         ImGui::Render();
         int w, h;
