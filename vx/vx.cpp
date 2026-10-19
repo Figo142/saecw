@@ -12,7 +12,7 @@
 namespace vx
 {
     // ------------------------------------------------------------------ state
-    static const float kSide = 96.f, kHead = 46.f, kBottom = 32.f, kPad = 24.f, kRow = 34.f;
+    static const float kHead = 58.f, kBottom = 32.f, kPad = 22.f, kRow = 34.f;
 
     static const Theme kPresets[] = {
         // blue
@@ -38,9 +38,8 @@ namespace vx
     static Theme  g_cur = kPresets[0], g_tgt = kPresets[0];
     static Fonts  g_fonts = {};
     static float  g_time = 0.f, g_dt = 0.016f;
-    static float  g_tabY = 0.f, g_ind_y = 0.f, g_ind_v = 0.f, g_base_alpha = 1.f, g_alpha = 0.f;
+    static float  g_base_alpha = 1.f, g_alpha = 0.f;
     static bool   g_ind_init = false;
-    static char   g_title[32] = "";
     static ImVec2 g_wpos, g_wsize;
     static bool*  g_open = nullptr;
 
@@ -324,6 +323,8 @@ namespace vx
     }
 
     // ----------------------------------------------------------------- window
+    static float g_tabX = 0.f, g_ind_x = 0.f, g_ind_w = 0.f;
+
     bool BeginWindow(const char* title, ImVec2 size, bool* open)
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -331,7 +332,7 @@ namespace vx
         g_time += g_dt;
         ThemeStep();
         ApplyStyle();
-        g_alpha = Clamp01(g_alpha + g_dt * 5.f);
+        g_alpha = Clamp01(g_alpha + g_dt * 6.f);
         g_open = open;
 
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
@@ -349,53 +350,37 @@ namespace vx
         g_wpos = p; g_wsize = size;
         ImVec4 black(0, 0, 0, 1);
 
-        // body, rail, frame
+        // body + top bar
         dl->AddRect(ImVec2(p.x - 1, p.y - 1), ImVec2(e.x + 1, e.y + 1), U32(A(black, 0.75f)));
         dl->AddRectFilledMultiColor(p, e, U32(t.bg_top), U32(t.bg_top), U32(t.bg_bot), U32(t.bg_bot));
-        ImVec4 r0 = Mix(t.bg_bot, black, 0.35f), r1 = Mix(t.bg_bot, black, 0.6f);
-        dl->AddRectFilledMultiColor(p, ImVec2(p.x + kSide, e.y), U32(r0), U32(r0), U32(r1), U32(r1));
-        dl->AddLine(ImVec2(p.x + kSide, p.y), ImVec2(p.x + kSide, e.y), U32(A(t.text, 0.09f)));
-        dl->AddLine(ImVec2(p.x + kSide, p.y + kHead), ImVec2(e.x, p.y + kHead), U32(A(t.text, 0.09f)));
+        ImVec4 bar = Mix(t.bg_bot, black, 0.35f);
+        dl->AddRectFilled(p, ImVec2(e.x, p.y + kHead), U32(bar));
+        dl->AddLine(ImVec2(p.x, p.y + kHead), ImVec2(e.x, p.y + kHead), U32(A(t.text, 0.09f)));
         dl->AddRect(p, e, U32(A(t.text, 0.14f)));
-        dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(e.x - 3, e.y - 3), U32(A(black, 0.28f)));
 
-        // three stop accent line, with a slow sheen
+        // static three stop accent line
         {
-            const int seg = 96;
+            const int seg = 64;
             float w = size.x - 2.f;
-            float sheen = fmodf(g_time * 0.22f, 1.7f) - 0.35f;
             for (int i = 0; i < seg; ++i) {
                 float u = (i + 0.5f) / seg;
                 ImVec4 c = u < 0.5f ? Mix(t.acc1, t.acc2, u * 2.f) : Mix(t.acc2, t.acc3, (u - 0.5f) * 2.f);
-                float sh = expf(-((u - sheen) * (u - sheen)) / 0.004f) * 0.55f;
-                c = Mix(c, ImVec4(1, 1, 1, 1), sh);
-                float x0 = p.x + 1 + w * i / seg, x1 = p.x + 1 + w * (i + 1) / seg;
-                dl->AddRectFilled(ImVec2(x0, p.y + 1), ImVec2(x1, p.y + 3), U32(c));
-                dl->AddRectFilledMultiColor(ImVec2(x0, p.y + 3), ImVec2(x1, p.y + 30), U32(A(c, 0.09f)), U32(A(c, 0.09f)), U32(A(c, 0.0f)), U32(A(c, 0.0f)));
+                dl->AddRectFilled(ImVec2(p.x + 1 + w * i / seg, p.y + 1), ImVec2(p.x + 1 + w * (i + 1) / seg, p.y + 3), U32(c));
             }
         }
 
-        // logo mark
-        {
-            ImVec2 c(p.x + kSide * 0.5f, p.y + 46.f);
-            dl->AddLine(ImVec2(c.x - 12, c.y - 12), ImVec2(c.x, c.y + 12), U32(t.text), 5.f);
-            dl->AddLine(ImVec2(c.x + 12, c.y - 12), ImVec2(c.x, c.y + 12), U32(t.acc1), 5.f);
-            dl->AddRectFilled(ImVec2(c.x - 12, c.y + 19), ImVec2(c.x + 12, c.y + 21), U32(A(t.text_dim, 0.6f)));
-        }
+        // wordmark
+        ImFont* ft = g_fonts.title;
+        Txt(dl, ft, ImVec2(p.x + 24, p.y + (kHead - ft->FontSize) * 0.5f + 1), U32(t.text), "VELOX");
+        dl->AddRectFilled(ImVec2(p.x + 24 + TxtSize(ft, "VELOX").x + 4, p.y + kHead * 0.5f + 8), ImVec2(p.x + 24 + TxtSize(ft, "VELOX").x + 10, p.y + kHead * 0.5f + 14), U32(t.acc1));
 
-        // avatar at the bottom of the rail
+        // user + close
         {
-            ImFont* fb = g_fonts.bold;
-            ImVec2 c(p.x + kSide * 0.5f, e.y - kBottom - 30.f);
-            dl->AddCircleFilled(c, 19.f, U32(t.frame), 32);
-            dl->AddCircle(c, 19.f, U32(A(t.acc1, 0.85f)), 32, 2.f);
-            Txt(dl, fb, ImVec2(c.x - TxtSize(fb, "V").x * 0.5f, c.y - fb->FontSize * 0.5f), U32(t.text), "V");
-            dl->AddCircleFilled(ImVec2(c.x + 14, c.y + 14), 5.5f, U32(ImVec4(0.25f, 0.85f, 0.45f, 1)), 12);
-            dl->AddCircle(ImVec2(c.x + 14, c.y + 14), 5.5f, U32(t.bg_bot), 12, 2.f);
-        }
+            ImFont* fb = g_fonts.bold; ImFont* fs = g_fonts.small;
+            float rx = e.x - 56.f;
+            Txt(dl, fb, ImVec2(rx - TxtSize(fb, "velox").x, p.y + 9), U32(t.text), "velox");
+            Txt(dl, fs, ImVec2(rx - TxtSize(fs, "expires: never").x, p.y + 32), U32(t.text_dim), "expires: never");
 
-        // close
-        {
             ImVec2 cc(e.x - 28, p.y + kHead * 0.5f + 1);
             ImGui::SetCursorScreenPos(ImVec2(cc.x - 14, cc.y - 14));
             ImGui::InvisibleButton("##vx_close", ImVec2(28, 28));
@@ -406,25 +391,22 @@ namespace vx
             if (ImGui::IsItemClicked() && g_open) *g_open = false;
         }
 
-        // footer of the content area
+        // footer
         {
             ImFont* fs = g_fonts.small;
             char buf[64];
             snprintf(buf, sizeof(buf), "%.0f fps", io.Framerate);
-            Txt(dl, fs, ImVec2(p.x + kSide + kPad, e.y - kBottom + 7), U32(A(t.text_dim, 0.8f)), "velox  build 1.0.0");
+            dl->AddLine(ImVec2(p.x, e.y - kBottom), ImVec2(e.x, e.y - kBottom), U32(A(t.text, 0.07f)));
+            Txt(dl, fs, ImVec2(p.x + kPad, e.y - kBottom + 7), U32(A(t.text_dim, 0.8f)), "velox  build 1.0.0");
             Txt(dl, fs, ImVec2(e.x - kPad - TxtSize(fs, buf).x, e.y - kBottom + 7), U32(A(t.text_dim, 0.8f)), buf);
         }
 
-        // drag handles
+        // drag handle (tabs are submitted after, so they win the hover)
         ImGui::SetCursorPos(ImVec2(0, 0));
-        ImGui::InvisibleButton("##vx_drag_a", ImVec2(kSide, 84));
-        bool drag = ImGui::IsItemActive();
-        ImGui::SetCursorPos(ImVec2(kSide, 0));
-        ImGui::InvisibleButton("##vx_drag_b", ImVec2(size.x - kSide - 44, kHead));
-        drag = drag || ImGui::IsItemActive();
-        if (drag) ImGui::SetWindowPos(ImVec2(p.x + io.MouseDelta.x, p.y + io.MouseDelta.y));
+        ImGui::InvisibleButton("##vx_drag", ImVec2(size.x - 190, kHead));
+        if (ImGui::IsItemActive()) ImGui::SetWindowPos(ImVec2(p.x + io.MouseDelta.x, p.y + io.MouseDelta.y));
 
-        g_tabY = 96.f;
+        g_tabX = 190.f;
         return true;
     }
 
@@ -434,21 +416,16 @@ namespace vx
         ImGui::PopStyleVar(3);
     }
 
-    void TabSeparator()
-    {
-        ImVec2 wp = ImGui::GetWindowPos();
-        ImDrawList* dl = ImGui::GetWindowDrawList();
-        float y = wp.y + g_tabY + 6.f;
-        dl->AddLine(ImVec2(wp.x + 24, y), ImVec2(wp.x + kSide - 24, y), U32(A(g_cur.text, 0.10f)));
-        g_tabY += 14.f;
-    }
+    void TabSeparator() { g_tabX += 18.f; }
 
     bool Tab(const char* label, Icon icon, int idx, int* current)
     {
         const Theme& t = g_cur;
-        float w = kSide, h = 78.f;
+        ImFont* f = g_fonts.bold;
+        ImVec2 ts = TxtSize(f, label);
+        float w = 18.f + 18.f + 8.f + ts.x + 18.f, h = kHead - 3.f;
 
-        ImGui::SetCursorPos(ImVec2(0.f, g_tabY));
+        ImGui::SetCursorPos(ImVec2(g_tabX, 3.f));
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImGuiID id = ImGui::GetID(label);
         ImGui::InvisibleButton(label, ImVec2(w, h));
@@ -456,57 +433,33 @@ namespace vx
         if (clicked && *current != idx) *current = idx;
 
         bool sel = (*current == idx);
+        float a  = Tween(id, sel ? 1.f : 0.f, 1, 0.15f);
         float hv = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 2);
         ImDrawList* dl = ImGui::GetWindowDrawList();
-        ImGuiStorage* st = ImGui::GetStateStorage();
 
-        float draw = 1.f;
+        if (hv > 0.01f && !sel) dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.03f * hv)));
         if (sel) {
-            float& dp = *st->GetFloatRef(id + 11u, 1.f);
-            dp = dp + g_dt / 0.6f > 1.f ? 1.f : dp + g_dt / 0.6f;
-            draw = EaseOutCubic(dp);
-
-            // connected tab: spring-driven block that merges into the content area
             ImVec2 wp = ImGui::GetWindowPos();
-            float ty = p.y - wp.y;
-            if (!g_ind_init) { g_ind_y = ty; g_ind_init = true; }
-            g_ind_v += (520.f * (ty - g_ind_y) - 30.f * g_ind_v) * g_dt;
-            g_ind_y += g_ind_v * g_dt;
-            ImVec2 a0(p.x, wp.y + g_ind_y), a1(p.x + w + 1.f, wp.y + g_ind_y + h);
-            dl->AddRectFilled(a0, a1, U32(t.bg_top));
-            dl->AddRectFilledMultiColor(a0, a1, U32(A(t.acc1, 0.16f)), U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.16f)));
-            dl->AddLine(a0, ImVec2(a1.x, a0.y), U32(A(t.text, 0.10f)));
-            dl->AddLine(ImVec2(a0.x, a1.y), a1, U32(A(t.text, 0.10f)));
-            dl->AddRectFilled(a0, ImVec2(a0.x + 3, a1.y), U32(t.acc1));
-        } else {
-            st->SetFloat(id + 11u, 0.f);
-            if (hv > 0.01f) dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.035f * hv)));
+            float tx = p.x - wp.x;
+            if (!g_ind_init) { g_ind_x = tx; g_ind_w = w; g_ind_init = true; }
+            float k = 1.f - expf(-g_dt * 20.f);
+            g_ind_x += (tx - g_ind_x) * k;
+            g_ind_w += (w - g_ind_w) * k;
+            ImVec2 a0(wp.x + g_ind_x, p.y), a1(wp.x + g_ind_x + g_ind_w, p.y + h);
+            dl->AddRectFilledMultiColor(a0, a1, U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.14f)), U32(A(t.acc1, 0.14f)));
+            dl->AddRectFilled(ImVec2(a0.x, a1.y - 2), ImVec2(a1.x, a1.y), U32(t.acc1));
         }
-
-        float a = sel ? 1.f : 0.f;
         ImVec4 col = Mix(Mix(t.text_dim, t.text, hv * 0.85f), t.acc1, a);
-        ImVec2 ic(p.x + w * 0.5f, p.y + 31.f - 2.5f * hv);
-        if (sel)
-            for (int i = 0; i < 9; ++i) dl->AddCircleFilled(ic, 8.f + i * 3.4f, U32(A(t.acc1, 0.020f)), 24);
-        DrawSvgIcon(dl, icon, ic, 28.f, U32(col), draw);
-        ImFont* f = g_fonts.small;
-        ImVec2 ts = TxtSize(f, label);
-        Txt(dl, f, ImVec2(p.x + (w - ts.x) * 0.5f, p.y + 55.f), U32(col), label);
-        if (sel) snprintf(g_title, sizeof(g_title), "%s", label);
-        g_tabY += h;
+        DrawSvgIcon(dl, icon, ImVec2(p.x + 18 + 9, p.y + h * 0.5f), 18.f, U32(col), 1.f);
+        Txt(dl, f, ImVec2(p.x + 18 + 18 + 8, p.y + h * 0.5f - f->FontSize * 0.5f), U32(col), label);
+        g_tabX += w + 2.f;
         return clicked;
     }
 
     void BeginContent()
     {
-        const Theme& t = g_cur;
-        ImDrawList* dl = ImGui::GetWindowDrawList();
-        ImVec2 p = ImGui::GetWindowPos();
-        ImFont* f = g_fonts.bold;
-        Txt(dl, f, ImVec2(p.x + kSide + kPad, p.y + kHead * 0.5f - f->FontSize * 0.5f), U32(t.text), g_title);
-
-        ImGui::SetCursorPos(ImVec2(kSide + kPad, kHead + 16.f));
-        ImGui::BeginChild("##vx_content", ImVec2(g_wsize.x - kSide - kPad * 2, g_wsize.y - kHead - kBottom - 20.f), 0,
+        ImGui::SetCursorPos(ImVec2(kPad, kHead + 18.f));
+        ImGui::BeginChild("##vx_content", ImVec2(g_wsize.x - kPad * 2, g_wsize.y - kHead - kBottom - 26.f), 0,
                           ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 

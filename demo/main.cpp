@@ -25,7 +25,7 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 330");
 
     int tab = 0, sub = 0, preset = 0, target = 0, fov = 90, hitchance = 70;
-    bool aimbot = true, silent = false, autofire = true, autostop = true, visibleOnly = false;
+    bool autoscope = true, limbs = false, baim = false, aimbot = true, silent = false, autofire = true, autostop = true, visibleOnly = false;
     bool glow = true, boxes = true, flagsOn[4] = { true, true, false, true }, antiaim = false;
     float smooth = 35.f, range = 120.f, pointscale = 90.f, col[4] = { 0.16f, 0.5f, 1.f, 1.f };
     ImGuiKey bind = ImGuiKey_V;
@@ -41,7 +41,7 @@ int main()
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos(ImVec2(60, 40), ImGuiCond_FirstUseEver);
-        if (vx::BeginWindow("VELOX", ImVec2(1120, 720), &open)) {
+        if (vx::BeginWindow("VELOX", ImVec2(1180, 700), &open)) {
             vx::Tab("RAGE", vx::Icon::Crosshair, 0, &tab);
             vx::Tab("LEGIT", vx::Icon::Pointer, 1, &tab);
             vx::Tab("VISUALS", vx::Icon::Eye, 2, &tab);
@@ -57,8 +57,8 @@ int main()
                 vx::SubTab("Rifles", 2, &sub);  vx::SubTab("Snipers", 3, &sub);
                 vx::EndSubTabs();
 
-                float colw = (ImGui::GetContentRegionAvail().x - 24.f) / 2.f;
-                if (vx::BeginGroup("Aimbot", ImVec2(colw, 0))) {
+                float colw = (ImGui::GetContentRegionAvail().x - 24.f) / 3.f;
+                if (vx::BeginGroup("Weapon", ImVec2(colw, 0))) {
                     vx::Checkbox("Enabled", &aimbot);
                     vx::Checkbox("Silent aim", &silent);
                     vx::Combo("Target", &target, targets, 4);
@@ -69,12 +69,19 @@ int main()
                     vx::EndGroup();
                 }
                 ImGui::SameLine(0, 12);
-                if (vx::BeginGroup("Extra", ImVec2(0, 0))) {
-                    vx::Checkbox("Autofire", &autofire);
+                if (vx::BeginGroup("Extra", ImVec2(colw, 0))) {
                     vx::Checkbox("Autostop", &autostop);
-                    vx::Checkbox("Visible only", &visibleOnly);
+                    vx::Checkbox("Autoscope", &autoscope);
+                    vx::Checkbox("Ignore limbs on move", &limbs);
                     vx::SliderFloat("Pointscale", &pointscale, 0.f, 100.f, "%.0f%%");
                     vx::SliderFloat("Range", &range, 10.f, 500.f, "%.0fm");
+                    vx::EndGroup();
+                }
+                ImGui::SameLine(0, 12);
+                if (vx::BeginGroup("General", ImVec2(0, 0))) {
+                    vx::Checkbox("Autofire", &autofire);
+                    vx::Checkbox("Visible only", &visibleOnly);
+                    vx::Checkbox("Force baim", &baim);
                     vx::Spacing(4);
                     if (vx::Button("Reset values")) vx::Notify("Values reset", 2);
                     vx::EndGroup();
