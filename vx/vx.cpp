@@ -39,7 +39,6 @@ namespace vx
     static Fonts  g_fonts = {};
     static float  g_time = 0.f, g_dt = 0.016f;
     static float  g_base_alpha = 1.f, g_alpha = 0.f;
-    static bool   g_ind_init = false;
     static ImVec2 g_wpos, g_wsize;
     static bool*  g_open = nullptr;
 
@@ -323,7 +322,7 @@ namespace vx
     }
 
     // ----------------------------------------------------------------- window
-    static float g_tabX = 0.f, g_ind_x = 0.f, g_ind_w = 0.f;
+    static float g_tabX = 0.f;
 
     bool BeginWindow(const char* title, ImVec2 size, bool* open)
     {
@@ -357,17 +356,6 @@ namespace vx
         dl->AddRectFilled(p, ImVec2(e.x, p.y + kHead), U32(bar));
         dl->AddLine(ImVec2(p.x, p.y + kHead), ImVec2(e.x, p.y + kHead), U32(A(t.text, 0.09f)));
         dl->AddRect(p, e, U32(A(t.text, 0.14f)));
-
-        // static three stop accent line
-        {
-            const int seg = 64;
-            float w = size.x - 2.f;
-            for (int i = 0; i < seg; ++i) {
-                float u = (i + 0.5f) / seg;
-                ImVec4 c = u < 0.5f ? Mix(t.acc1, t.acc2, u * 2.f) : Mix(t.acc2, t.acc3, (u - 0.5f) * 2.f);
-                dl->AddRectFilled(ImVec2(p.x + 1 + w * i / seg, p.y + 1), ImVec2(p.x + 1 + w * (i + 1) / seg, p.y + 3), U32(c));
-            }
-        }
 
         // wordmark
         ImFont* ft = g_fonts.title;
@@ -433,25 +421,24 @@ namespace vx
         if (clicked && *current != idx) *current = idx;
 
         bool sel = (*current == idx);
-        float a  = Tween(id, sel ? 1.f : 0.f, 1, 0.15f);
+        float a  = Tween(id, sel ? 1.f : 0.f, 1, 0.12f);
         float hv = Anim(id, ImGui::IsItemHovered() ? 1.f : 0.f, 2);
         ImDrawList* dl = ImGui::GetWindowDrawList();
 
-        if (hv > 0.01f && !sel) dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.03f * hv)));
-        if (sel) {
-            ImVec2 wp = ImGui::GetWindowPos();
-            float tx = p.x - wp.x;
-            if (!g_ind_init) { g_ind_x = tx; g_ind_w = w; g_ind_init = true; }
-            float k = 1.f - expf(-g_dt * 20.f);
-            g_ind_x += (tx - g_ind_x) * k;
-            g_ind_w += (w - g_ind_w) * k;
-            ImVec2 a0(wp.x + g_ind_x, p.y), a1(wp.x + g_ind_x + g_ind_w, p.y + h);
-            dl->AddRectFilledMultiColor(a0, a1, U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.0f)), U32(A(t.acc1, 0.14f)), U32(A(t.acc1, 0.14f)));
-            dl->AddRectFilled(ImVec2(a0.x, a1.y - 2), ImVec2(a1.x, a1.y), U32(t.acc1));
+        if (a > 0.01f) {
+            // folder tab: same color as the page, so it joins the content area
+            ImVec2 a0(p.x, p.y), a1(p.x + w, p.y + h + 1.f);
+            dl->AddRectFilled(a0, a1, U32(A(t.bg_top, a)));
+            dl->AddLine(ImVec2(a0.x, a0.y), ImVec2(a0.x, a1.y), U32(A(t.text, 0.10f * a)));
+            dl->AddLine(ImVec2(a1.x - 1, a0.y), ImVec2(a1.x - 1, a1.y), U32(A(t.text, 0.10f * a)));
+            dl->AddRectFilled(ImVec2(a0.x, a0.y), ImVec2(a1.x, a0.y + 2), U32(A(t.acc1, a)));
+        } else if (hv > 0.01f) {
+            dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), U32(A(t.text, 0.03f * hv)));
         }
-        ImVec4 col = Mix(Mix(t.text_dim, t.text, hv * 0.85f), t.acc1, a);
-        DrawSvgIcon(dl, icon, ImVec2(p.x + 18 + 9, p.y + h * 0.5f), 18.f, U32(col), 1.f);
-        Txt(dl, f, ImVec2(p.x + 18 + 18 + 8, p.y + h * 0.5f - f->FontSize * 0.5f), U32(col), label);
+        ImVec4 txt = Mix(Mix(t.text_dim, t.text, hv * 0.85f), t.text, a);
+        ImVec4 ico = Mix(Mix(t.text_dim, t.text, hv * 0.85f), t.acc1, a);
+        DrawSvgIcon(dl, icon, ImVec2(p.x + 18 + 9, p.y + h * 0.5f + 1.f), 18.f, U32(ico), 1.f);
+        Txt(dl, f, ImVec2(p.x + 18 + 18 + 8, p.y + h * 0.5f - f->FontSize * 0.5f + 1.f), U32(txt), label);
         g_tabX += w + 2.f;
         return clicked;
     }
